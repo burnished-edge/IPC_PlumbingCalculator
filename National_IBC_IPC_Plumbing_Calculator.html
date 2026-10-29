@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National IBC / IPC Plumbing Fixture Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f5;
+            --card-bg: #ffffff;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --border-color: #e4e4e7;
+            --accent: #0f766e;
+            --accent-hover: #115e59;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info-bg: #f0fdfa;
+            --info-text: #134e4a;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.4;
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: var(--card-bg);
+            max-width: 960px;
+            width: 100%;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .header-actions {
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-titles h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 0.2rem;
+            color: var(--text-main);
+        }
+        .header-titles .subtitle {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .util-buttons {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-outline:hover { background-color: var(--info-bg); }
+        .btn-danger { background-color: #fee2e2; color: #b91c1c; padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+        .btn-danger:hover { background-color: #fca5a5; }
+
+        /* Jurisdiction Pill Bar & Collapsible Map Drawer */
+        .jurisdiction-bar {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .jurisdiction-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.65rem 1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .jurisdiction-bar-header:hover {
+            background-color: #f1f5f9;
+        }
+        .jurisdiction-pill-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .tier-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .tier-supported { background-color: #10b981; }
+        .tier-hybrid { background-color: #f59e0b; }
+        .tier-custom { background-color: #ef4444; }
+        
+        .tier-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .tier-badge.supported { background-color: #d1fae5; color: #065f46; }
+        .tier-badge.hybrid { background-color: #fef3c7; color: #92400e; }
+        .tier-badge.custom { background-color: #fee2e2; color: #991b1b; }
+
+        .jurisdiction-toggle-btn {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent);
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 0.65rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .jurisdiction-drawer {
+            display: none;
+            border-top: 1px solid var(--border-color);
+            padding: 1rem;
+            background-color: #ffffff;
+        }
+        .jurisdiction-drawer.open {
+            display: block;
+        }
+        .drawer-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+        .state-search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .state-search-input {
+            padding: 0.45rem 0.6rem;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .state-list-scroll {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .state-list-item {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.78rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.12s;
+        }
+        .state-list-item:last-child { border-bottom: none; }
+        .state-list-item:hover, .state-list-item.hovered {
+            background-color: #e2e8f0;
+        }
+        .state-list-item.active {
+            background-color: var(--info-bg);
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Interactive US Tile Grid Map */
+        .map-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .us-grid-map {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(8, 34px);
+            gap: 4px;
+            user-select: none;
+        }
+        .state-tile {
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        .state-tile.supported {
+            background-color: #d1fae5;
+            color: #065f46;
+            border-color: #a7f3d0;
+        }
+        .state-tile.hybrid {
+            background-color: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+        .state-tile.custom {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+        .state-tile:hover, .state-tile.hovered {
+            transform: scale(1.1);
+            z-index: 2;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border-color: #18181b;
+        }
+        .state-tile.active {
+            border-color: #18181b;
+            box-shadow: 0 0 0 2px #18181b;
+            z-index: 1;
+        }
+        .map-hover-preview {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.78rem;
+            min-height: 2.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        /* Status Alert Banner for Hybrid / Incompatible States */
+        .state-alert-banner {
+            display: none;
+            padding: 0.65rem 0.9rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            line-height: 1.45;
+        }
+        .state-alert-banner.hybrid {
+            display: block;
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            color: #78350f;
+        }
+        .state-alert-banner.custom {
+            display: block;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        /* Space Cards */
+        .space-card {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #fafafa;
+            transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+            position: relative;
+        }
+        .space-card.dragging { opacity: 0.4; transform: scale(0.98); }
+        .space-card.drag-over { border: 2px dashed var(--accent); background-color: var(--info-bg); }
+        .space-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .space-header-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 0.4rem;
+        }
+        .space-title-input {
+            font-size: 1rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; background: transparent; padding: 0.2rem 0.4rem; border-radius: 3px; width: 100%; max-width: 50%; min-width: 120px; transition: all 0.2s; font-family: inherit;
+            resize: none; overflow: hidden; line-height: 1.3; white-space: pre-wrap; word-wrap: break-word; word-break: break-word;
+        }
+        .space-title-input:hover { border-color: var(--border-color); background: white; }
+        .space-title-input:focus { border-color: var(--accent); background: white; outline: none; box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15); }
+        
+        .badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 999px; background-color: #ccfbf1; color: #115e59; font-weight: 500; white-space: nowrap; }
+        .badge.seats { background-color: #dbeafe; color: #1e40af; }
+        .badge.units { background-color: #fef3c7; color: #92400e; }
+
+        .input-grid { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+        label { font-weight: 500; font-size: 0.75rem; margin-bottom: 0.25rem; color: var(--text-main); }
+        input[type="number"], select { padding: 0.35rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; outline: none; transition: border-color 0.2s; font-family: inherit; width: 100%; box-sizing: border-box; }
+        input[type="number"] { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15); }
+        
+        .table-wrapper {
+            display: inline-block;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 1rem;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .calc-table {
+            border-collapse: collapse;
+            width: max-content;
+            background-color: #ffffff;
+            font-size: 0.8rem;
+        }
+        .calc-table th, .calc-table td {
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.6rem;
+            text-align: center;
+        }
+        .calc-table th { font-weight: normal; text-align: left; }
+        .calc-table tr:first-child th, .calc-table tr:first-child td { border-top: none; }
+        .calc-table tr:last-child th, .calc-table tr:last-child td { border-bottom: none; }
+        .calc-table tr th:first-child, .calc-table tr td:first-child { border-left: none; }
+        .calc-table tr th:last-child, .calc-table tr td:last-child { border-right: none; }
+        
+        .calc-table .table-header-title { 
+            color: var(--text-main); 
+            text-decoration: underline; 
+            text-underline-offset: 2px;
+            margin-right: 0.5rem;
+        }
+        .calc-table .fixture-header { 
+            background-color: #fafafa; 
+            color: var(--text-main); 
+            text-decoration: underline; 
+            text-underline-offset: 2px;
+            text-align: center;
+        }
+        .calc-table .table-header-value, .calc-table .fixture-value { 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 600;
+            color: var(--text-main);
+            background: #e4e4e7;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            display: inline-block;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .math-breakdown, .amendments-footnote { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color); font-size: 0.75rem; color: var(--text-muted); }
+        .math-breakdown summary, .amendments-footnote summary { cursor: pointer; font-weight: 600; color: var(--accent); outline: none; user-select: none; font-size: 0.85rem; }
+        .math-breakdown div { margin-top: 0.5rem; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; background: #f1f5f9; padding: 0.75rem; border-radius: 4px; }
+        .math-breakdown div p { margin: 0 0 0.4rem 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2rem; }
+        .math-breakdown div p:last-child { margin: 0; border-bottom: none; padding-bottom: 0; }
+        .math-breakdown .highlight-math { color: var(--text-main); font-weight: 600; }
+
+        .amendments-footnote {
+            margin-top: 1.25rem;
+            background-color: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.85rem 1rem;
+        }
+        .amendments-content {
+            margin-top: 0.75rem;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .amendments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .amendment-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.65rem 0.8rem;
+        }
+        .amendment-card h4 {
+            margin: 0 0 0.35rem 0;
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+        .amendment-card ul {
+            margin: 0;
+            padding-left: 1.1rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        .amendment-card li {
+            margin-bottom: 0.25rem;
+        }
+        .amendment-card li:last-child {
+            margin-bottom: 0;
+        }
+
+        .results-panel { background-color: #f8fafc; border: 2px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-top: 1.5rem; }
+        .results-header { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .info-box { font-size: 0.75rem; color: var(--info-text); background-color: var(--info-bg); padding: 0.5rem 0.75rem; border-radius: 4px; border-left: 3px solid var(--accent); margin-bottom: 0.75rem; line-height: 1.4; }
+        
+        .split-mode-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.85rem;
+            font-size: 0.78rem;
+        }
+        .occupant-stats { display: flex; gap: 1.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+        .stat-box { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); cursor: help; border-bottom: 1px dotted #ccc; padding-bottom: 2px;}
+        .stat-value { font-size: 1.25rem; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text-main); }
+        .stat-box.divider { border-left: 2px solid var(--border-color); padding-left: 1.5rem; }
+        
+        .fixtures-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 1.5rem; 
+            margin-bottom: 1rem; 
+            max-width: 920px;
+        }
+        .fixture-category h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-top: 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; }
+        .result-row:last-child { border-bottom: none; }
+        .sub-note { font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: -2px; }
+        
+        .results-panel .result-row .value { 
+            font-weight: 700; 
+            font-size: 1.3rem; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+            color: var(--accent); 
+        }
+        .results-panel .result-row .value.sub-val {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+        
+        .common-fixtures { padding-top: 1rem; margin-top: 0.5rem; border-top: 1px solid var(--border-color); }
+        
+        .legend-container { display: flex; flex-wrap: wrap; column-gap: 12px; row-gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.8rem; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
+        .add-btn-container { text-align: center; margin-top: 1rem; }
+        
+        .print-btn-bottom {
+            display: block; width: 100%; margin-top: 1rem; padding: 0.75rem; background-color: #1e293b; color: white; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;
+        }
+        .print-btn-bottom:hover { opacity: 0.9; }
+
+        @media print {
+            @page { size: letter portrait; margin: 0.4in; }
+            body { background-color: #ffffff; padding: 0; font-size: 9pt; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; border: none; }
+            
+            .util-buttons, .add-btn-container, .btn-danger, .print-btn-bottom, .jurisdiction-drawer, .jurisdiction-toggle-btn { display: none !important; }
+            #spaces-container { display: block; width: 100%; }
+            
+            .jurisdiction-bar {
+                border: 1px solid var(--border-color);
+                margin-bottom: 0.12in;
+            }
+            .space-card { 
+                background-color: transparent; 
+                border: 1px solid var(--border-color); 
+                page-break-inside: avoid; 
+                break-inside: avoid; 
+                margin-bottom: 0.15in; 
+                padding: 0.15in; 
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .results-panel, .amendments-footnote { 
+                background-color: transparent; 
+                border: 2px solid var(--border-color); 
+                page-break-inside: avoid; 
+                break-inside: avoid; 
+                padding: 0.15in; 
+                margin-top: 0.15in;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .results-header { margin-top: 0 !important; margin-bottom: 0.25rem !important; }
+            
+            input[type="number"], select, .space-title-input {
+                border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important;
+                appearance: none; -webkit-appearance: none; box-shadow: none !important; color: var(--text-main); font-size: 9pt;
+            }
+            .space-title-input { font-size: 10.5pt; font-weight: bold; }
+            select { padding-right: 0; }
+            .input-group label { font-size: 7.5pt; margin-bottom: 0; }
+            .input-grid { gap: 0.5rem; margin-bottom: 0; }
+            .space-header { margin-bottom: 0.25rem; }
+            
+            details summary { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
+            .math-breakdown { 
+                margin-top: 0.25rem !important; 
+                padding-top: 0.25rem !important; 
+                border-top: 1px dashed var(--border-color) !important; 
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            details > div { 
+                display: block !important; 
+                border-top: none; 
+                padding: 0 !important; 
+                margin-top: 0 !important; 
+                margin-bottom: 0 !important;
+                background: transparent !important; 
+                font-size: 8pt; 
+                line-height: 1.25;
+            }
+            .math-breakdown div p { margin: 0 0 0.15rem 0 !important; padding-bottom: 0.15rem !important; border-bottom: 1px solid #f1f5f9 !important; }
+            .math-breakdown div p:last-of-type { margin: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
+            
+            .legend-container { 
+                margin-top: 0.25rem !important; 
+                padding-top: 0.25rem !important; 
+                row-gap: 2px !important; 
+                column-gap: 8px !important; 
+                margin-bottom: 0 !important; 
+                border-top: 1px dashed var(--border-color) !important; 
+            }
+            
+            .table-wrapper { border: 1px solid var(--border-color); overflow-x: visible; margin-top: 0.25rem; width: auto; display: inline-block; }
+            .calc-table { border: none; min-width: auto; width: max-content; font-size: 8.5pt; margin-top: 0; }
+            .calc-table th, .calc-table td { border: 1px solid var(--border-color); padding: 0.15rem 0.3rem; }
+            .calc-table .table-header-title { font-weight: bold; text-decoration: none; }
+            .calc-table .fixture-header { text-decoration: none; font-weight: bold; background: transparent; }
+            
+            .info-box { border: 1px solid var(--border-color); background-color: transparent; color: var(--text-main); font-size: 8pt; padding: 0.25rem 0.5rem; margin-bottom: 0.5rem;}
+            .results-panel .result-row .value { color: var(--accent); font-size: 12pt; }
+            .stat-value { color: var(--text-main); font-size: 14pt; }
+            .occupant-stats { gap: 1rem; margin-bottom: 0.5rem; padding-bottom: 0.5rem; }
+            .fixtures-grid { gap: 1rem; margin-bottom: 0.5rem; max-width: 100%; }
+            .fixture-category h3 { font-size: 8.5pt; margin-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); padding-bottom: 0; }
+            .result-row { padding: 0.25rem 0; font-size: 8.5pt; }
+            .common-fixtures { padding-top: 0.5rem; margin-bottom: 0.5rem; }
+            
+            a[href]:after { content: none !important; }
+        }
+
+        @media (max-width: 760px) {
+            body { padding: 0.5rem; }
+            .container { padding: 1rem; }
+            .drawer-layout { grid-template-columns: 1fr; }
+            .us-grid-map { grid-template-rows: repeat(8, 28px); gap: 2px; }
+            .state-tile { font-size: 0.62rem; }
+            .header-actions { flex-direction: column; gap: 0.75rem; }
+            .input-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+            .fixtures-grid { grid-template-columns: 1fr; max-width: 100%; }
+            .input-group { min-width: 100%; }
+            .space-title-input { max-width: 100%; }
+            .space-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .occupant-stats { gap: 0.75rem; }
+            .stat-box.divider { border-left: none !important; padding-left: 0 !important; width: 100%; border-top: 1px solid var(--border-color); padding-top: 0.75rem;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-actions">
+        <div class="header-titles">
+            <h1>National IBC / IPC Plumbing Fixture Calculator</h1>
+            <div class="subtitle">Fractional Aggregation Engine — IBC Table 2902.1 / IPC Table 403.1 &amp; IBC Table 1004.5 (2018 / 2021 / 2024 I-Codes)</div>
+        </div>
+        <div class="util-buttons">
+            <button class="btn btn-outline" onclick="printReport()">Print / Save PDF</button>
+            <button class="btn btn-outline" id="share-btn" onclick="generateShareLink()">Copy Link</button>
+            <button class="btn btn-outline" onclick="exportData()">Export JSON</button>
+            <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">Import JSON</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+        </div>
+    </div>
+
+    <!-- Collapsible Jurisdiction Selector Bar & Interactive Map Drawer -->
+    <div class="jurisdiction-bar">
+        <div class="jurisdiction-bar-header" onclick="toggleMapDrawer()">
+            <div class="jurisdiction-pill-left">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">📍 Active Jurisdiction:</span>
+                <strong id="active-state-name" style="font-size: 0.92rem;">Arizona</strong>
+                <span id="active-state-badge" class="tier-badge supported">Standard IBC / IPC Baseline</span>
+                <span id="active-state-edition" style="font-size: 0.78rem; color: var(--text-muted);">Home-Rule (2018–2024 IBC/IPC)</span>
+            </div>
+            <button type="button" class="jurisdiction-toggle-btn" id="drawer-toggle-label">
+                <span>Change State / View Map</span>
+                <span id="drawer-chevron">▾</span>
+            </button>
+        </div>
+
+        <div class="jurisdiction-drawer" id="jurisdiction-drawer">
+            <div class="drawer-layout">
+                <div class="state-search-box">
+                    <input type="text" id="state-search-input" class="state-search-input" placeholder="Search state or code status..." oninput="filterStateList(this.value)">
+                    <div class="state-list-scroll" id="state-list-container"></div>
+                </div>
+                <div class="map-panel">
+                    <div class="map-legend">
+                        <div class="map-legend-item"><span class="tier-dot tier-supported"></span> <strong>Standard IBC / IPC Baseline</strong> (Unamended Table 2902.1 / 403.1)</div>
+                        <div class="map-legend-item"><span class="tier-dot tier-hybrid"></span> <strong>Hybrid / UPC Split</strong> (IBC Bldg Code + UPC or Local Split)</div>
+                        <div class="map-legend-item"><span class="tier-dot tier-custom"></span> <strong>Custom State Plumbing Code</strong> (Non-IPC Fixture Table)</div>
+                    </div>
+                    <div class="us-grid-map" id="us-grid-map"></div>
+                    <div class="map-hover-preview" id="map-hover-preview">
+                        <span>Hover over any state on the map or list to preview its plumbing code adoption status. Click to select and collapse.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conditional Warning Banner for Hybrid / Custom States -->
+    <div id="state-alert-banner" class="state-alert-banner"></div>
+
+    <div id="spaces-container"></div>
+    
+    <div class="add-btn-container">
+        <button class="btn" onclick="addSpace()" style="width: 100%; padding: 0.75rem; border: 2px dashed var(--accent); background: var(--info-bg); color: var(--accent); font-weight: 600;">+ Add Occupancy Space</button>
+    </div>
+
+    <div class="results-panel">
+        <div class="results-header">
+            <span>Project Grand Totals (IBC Table 2902.1 / IPC Table 403.1)</span>
+            <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-muted); background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 3px;">Fractions Summed &amp; Rounded Up (IBC 2902.1)</span>
+        </div>
+
+        <div class="split-mode-bar">
+            <div>
+                <strong>50/50 Sex Distribution Mode (IBC 2902.1.1 / IPC 403.1.1):</strong>
+                <span style="color: var(--text-muted); margin-left: 0.25rem;">Controls how odd total occupant loads are divided by sex.</span>
+            </div>
+            <select id="split-mode-select" style="width: auto; font-size: 0.78rem; padding: 0.25rem 0.5rem;" onchange="updateSplitMode(this.value)">
+                <option value="exact">Pure IBC 50/50 Split (Exact Halves: 15 Occ = 7.5M / 7.5F)</option>
+                <option value="ceil">Conservative Round-Up Split (Odd Occ Rounds Up: 15 Occ = 8M / 8F)</option>
+            </select>
+        </div>
+        
+        <div class="info-box">
+            <strong>Fractional Aggregation Mandate (IBC 2902.1 / IPC 403.1):</strong> "For calculations involving multiple occupancies, such fractional numbers for each occupancy shall first be summed and then rounded to the next higher whole number."
+        </div>
+        
+        <div class="info-box" style="background-color: #f0fdf4; border-left-color: var(--success); color: #14532d;">
+            <strong>Urinal Substitution Rule (IPC Section 424.2):</strong> In the IBC/IPC, urinals are not a separate additive requirement. Instead, urinals may be <strong>substituted</strong> for required Male Water Closets: up to <strong>67%</strong> in Group A (Assembly) and Group E (Educational) occupancies, and up to <strong>50%</strong> in all other occupancies.
+        </div>
+        
+        <div class="occupant-stats">
+            <div class="stat-box">
+                <span class="stat-label" title="Raw sum of all area-based and fixed-seating occupants.">Base Occupants</span>
+                <span class="stat-value" id="gt-total">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label" title="Male occupant load used in IBC 2902.1 ratios.">Design Male</span>
+                <span class="stat-value" id="gt-male">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label" title="Female occupant load used in IBC 2902.1 ratios.">Design Female</span>
+                <span class="stat-value" id="gt-female">0</span>
+            </div>
+            <div class="stat-box divider">
+                <span class="stat-label" title="Total design load entering the plumbing fixture calculations (Male + Female).">Plumbing Design Load</span>
+                <span class="stat-value" id="gt-design-total">0</span>
+            </div>
+        </div>
+
+        <div class="fixtures-grid">
+            <div class="fixture-category">
+                <h3>Male Fixtures</h3>
+                <div class="result-row">
+                    <span>Total Water Closets<span class="sub-note">Before urinal substitution</span></span>
+                    <span class="value" id="gt-m-wc">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Max Urinal Sub.<span class="sub-note">Per IPC 424.2 (67% A/E, 50% other)</span></span>
+                    <span class="value sub-val" id="gt-m-ur-sub">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Net WCs if Max Urinals<span class="sub-note">Remaining Male WCs required</span></span>
+                    <span class="value sub-val" id="gt-m-wc-net">0</span>
+                </div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-m-lav">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3>Female Fixtures</h3>
+                <div class="result-row"><span>Water Closets</span><span class="value" id="gt-f-wc">0</span></div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-f-lav">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3>Private / Dwelling Units</h3>
+                <div class="result-row"><span>Water Closets</span><span class="value" id="gt-u-wc">0</span></div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-u-lav">0</span></div>
+                <div class="result-row"><span>Bathtubs / Showers</span><span class="value" id="gt-u-tub">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3 title="Single-occupant or multi-stall All-Gender total per 2021/2024 IBC 2902.1.2 & 2902.2 Exc. 6" style="cursor:help; border-bottom: 1px dotted var(--border-color);">Combined (M + F Total)</h3>
+                <div class="result-row"><span>Water Closets (M+F)</span><span class="value" id="gt-ag-wc">0</span></div>
+                <div class="result-row"><span>Lavatories (M+F)</span><span class="value" id="gt-ag-lav">0</span></div>
+            </div>
+            <div class="fixture-category common-fixtures">
+                <h3>Common Fixtures</h3>
+                <div class="result-row"><span>Drinking Fountains</span><span class="value" id="gt-df">0</span></div>
+                <div class="result-row"><span>Service Sink</span><span class="value" id="gt-ss">1</span></div>
+            </div>
+        </div>
+
+        <details class="math-breakdown">
+            <summary>View Grand Total Math Breakdown (IBC Table 2902.1 / IPC Table 403.1)</summary>
+            <div id="gt-math-container"></div>
+        </details>
+        
+        <button class="print-btn-bottom" onclick="printReport()">🖨️ Print / Save PDF Report</button>
+    </div>
+
+    <!-- Dynamic Collapsible Local Amendments Footnote -->
+    <details class="amendments-footnote" id="amendments-details" open>
+        <summary id="amendments-summary">📌 Local Amendments &amp; AHJ Code Footnotes: Arizona (Click to Collapse/Expand)</summary>
+        <div class="amendments-content" id="amendments-content"></div>
+    </details>
+</div>
+
+<script>
+    // =========================================================================
+    // 1. STATE JURISDICTION DATABASE & US GRID MAP COORDINATES
+    // =========================================================================
+    const stateJurisdictions = {
+        'AL': { name: 'Alabama', tier: 'supported', edition: '2021 IBC / IPC (Local & State)', row: 6, col: 7, summary: 'Adopts standard IBC Chapter 29 / IPC Table 403.1 ratios statewide for state buildings and across major municipalities (Birmingham, Huntsville, Mobile).' },
+        'AK': { name: 'Alaska', tier: 'hybrid', edition: '2021 IBC + 2021 UPC', row: 1, col: 1, summary: 'Adopts 2021 IBC for building occupancy, but uses the Uniform Plumbing Code (UPC) for plumbing systems. Verify whether local AHJ (e.g., Anchorage) enforces IBC Table 2902.1 or UPC Table 422.1.' },
+        'AZ': { name: 'Arizona', tier: 'supported', edition: 'Home-Rule (2018–2024 IBC / IPC)', row: 5, col: 3, summary: 'Home-rule state. Nearly all jurisdictions (Phoenix, Scottsdale, Tucson, Tempe, Mesa, Chandler, Gilbert) adopt unamended IBC Table 2902.1 / IPC Table 403.1 fixture count ratios.',
+            cards: [
+                { title: 'City of Phoenix (2024 IBC / IPC)', items: [
+                    '<strong>Group B Separate Facilities Threshold (IBC 2902.2 Exc. 3):</strong> Phoenix raises the single-user restroom exemption for Business (Group B) occupancies from 25 up to <strong>50 occupants</strong> before separate male/female facilities are required.',
+                    '<strong>Drinking Fountains (IBC 2902.5):</strong> Exempt for occupant loads of 30 or fewer, or in restaurants serving free water. Bottle-filling stations may substitute for up to 50% of required fountains.',
+                    '<strong>Outdoor Dining Patios:</strong> Enclosed or fenced outdoor dining areas must be included in plumbing occupant load calculations.'
+                ]},
+                { title: 'City of Scottsdale (2021 / 2024 IBC / IPC)', items: [
+                    '<strong>Fixture Ratios:</strong> Enforces standard, unamended IBC Table 2902.1 / IPC Table 403.1 minimum ratios.',
+                    '<strong>Air Admittance Valves (IPC Ch. 9 Amendment):</strong> Scottsdale restricts mechanical AAVs (Studor vents); atmospheric roof venting is required unless expressly approved by the Building Official.',
+                    '<strong>Water Efficiency:</strong> Strict desert conservation mandates apply to public lavatories (0.5 gpm) and high-efficiency urinals.'
+                ]},
+                { title: 'City of Tucson & Pima County (2024 IBC / IPC)', items: [
+                    '<strong>Fixture Ratios:</strong> Follows unamended IBC Table 2902.1 / IPC Table 403.1.',
+                    '<strong>Water Harvesting & Ultra-Low Flow:</strong> Mandates commercial rainwater harvesting site provisions and high-efficiency fixtures (1.28 gpf WCs, 0.125 gpf urinals).',
+                    '<strong>All-Gender Facilities:</strong> Multi-stall and single-user all-gender restrooms permitted per 2024 IBC Section 2902.1.2 & 2902.2 Exc. 6.'
+                ]},
+                { title: 'Tempe, Mesa, Chandler & Gilbert (East Valley)', items: [
+                    '<strong>Separate Facilities Exemptions (IBC 2902.2):</strong> Separate facilities not required for all occupancies <= 15 occupants, Mercantile (M) <= 100 occupants, and Business (B) <= 25 occupants (or 50 where locally amended).',
+                    '<strong>Service Sinks:</strong> Not required in B and M tenant spaces with <= 15 occupants where central building janitorial facilities exist.'
+                ]}
+            ]
+        },
+        'AR': { name: 'Arkansas', tier: 'supported', edition: '2021 IBC / 2018 IPC Statewide', row: 5, col: 6, summary: 'Enforces the Arkansas Plumbing Code (based on the IPC) and Arkansas Fire Prevention Code (based on the IBC) using standard Table 2902.1 / 403.1 fixture counts.' },
+        'CA': { name: 'California', tier: 'custom', edition: '2025 California Plumbing Code (CPC / Title 24)', row: 4, col: 1, summary: 'DOES NOT USE IBC/IPC FOR PLUMBING COUNTS. California mandates the California Plumbing Code (UPC-based Table 422.1) statewide, with stepped non-linear fixture brackets and mandatory per-room odd occupant rounding.',
+            cards: [
+                { title: 'California Statewide Mandate (Title 24, Part 5 - CPC)', items: [
+                    '<strong>Incompatible Fixture Table:</strong> California deletes IBC Chapter 29 fixture tables and mandates <strong>CPC Table 422.1</strong> (derived from IAPMO UPC).',
+                    '<strong>Stepped Brackets & Urinal Columns:</strong> Uses stepped brackets (e.g., Group B Female WC is 1 for 1–15, 2 for 16–30, 3 for 31–50, 4 for 51–100) and a mandatory additive Urinal column.',
+                    '<strong>Odd Occupant Rounding (CPC 422.1.1):</strong> Odd occupant loads per space must be rounded UP to the next whole number for both males and females.'
+                ]},
+                { title: 'City of Los Angeles (LAPC / LADBS)', items: [
+                    '<strong>Fractional Aggregation Method:</strong> Los Angeles strictly enforces the fractional summation method across CPC Table 422.1 & Table 4-1 brackets.',
+                    '<strong>Recommendation:</strong> Use the dedicated <em>LAPC / CPC Comprehensive Plumbing Calculator</em> for California projects.'
+                ]}
+            ]
+        },
+        'CO': { name: 'Colorado', tier: 'supported', edition: '2021 IBC / IPC (State & Local)', row: 4, col: 4, summary: 'Colorado Plumbing Board adopts the IPC statewide; Denver, Colorado Springs, Aurora, and Boulder use IBC Table 2902.1 / IPC Table 403.1 ratios.',
+            cards: [
+                { title: 'City & County of Denver (2022 Denver Building Code / 2021 IBC & IPC)', items: [
+                    '<strong>Fixture Count Baseline:</strong> Uses IBC Table 2902.1 / IPC Table 403.1 ratios.',
+                    '<strong>All-Gender Restrooms:</strong> Denver amendments explicitly facilitate single-stall and multi-stall all-gender restroom designs with full-height stall partitions.'
+                ]},
+                { title: 'Colorado Statewide Plumbing Board', items: [
+                    '<strong>Statewide IPC Baseline:</strong> The Colorado State Plumbing Board enforces the IPC as the minimum standard statewide, with WaterSense high-efficiency fixture requirements.'
+                ]}
+            ]
+        },
+        'CT': { name: 'Connecticut', tier: 'supported', edition: '2022 CT State Building Code (2021 IBC / IPC)', row: 3, col: 11, summary: 'Adopts the 2021 IBC and 2021 IPC statewide as part of the Connecticut State Building Code using standard Table 2902.1 / 403.1 fixture counts.' },
+        'DE': { name: 'Delaware', tier: 'supported', edition: '2021 IPC Statewide / County IBC', row: 4, col: 10, summary: 'Adopts the IPC statewide and IBC at the county/municipal level (New Castle, Kent, Sussex) with standard Table 2902.1 / 403.1 counts.' },
+        'DC': { name: 'District of Columbia', tier: 'supported', edition: 'DC Construction Codes (IBC / IPC)', row: 5, col: 10, summary: 'Adopts the IBC and IPC with DC supplements; uses standard Table 2902.1 / 403.1 fixture ratios with progressive all-gender restroom allowances.' },
+        'FL': { name: 'Florida', tier: 'supported', edition: '8th Ed. (2023) Florida Building Code (2021 IBC / IPC)', row: 7, col: 9, summary: 'Florida Building Code (Building & Plumbing volumes) is mandatory statewide and uses unamended IBC Table 2902.1 / IPC Table 403.1 fixture ratios.',
+            cards: [
+                { title: 'Florida Building Code (FBC 8th Edition - Statewide)', items: [
+                    '<strong>Uniform Statewide Table:</strong> FBC Plumbing Table 403.1 is identical to standard IPC Table 403.1 / IBC Table 2902.1.',
+                    '<strong>Separate Facilities (FBC Plumbing 403.2):</strong> Exempts all occupancies <= 15 occupants, Group B <= 25 occupants, and Group M <= 100 occupants.'
+                ]}
+            ]
+        },
+        'GA': { name: 'Georgia', tier: 'supported', edition: '2018 / 2024 IBC & IPC Statewide', row: 6, col: 8, summary: 'Georgia Department of Community Affairs (DCA) mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture minimums.',
+            cards: [
+                { title: 'Georgia State Minimum Standard Plumbing Code', items: [
+                    '<strong>Fixture Baseline:</strong> Uses IPC Table 403.1 / IBC Table 2902.1 statewide (Atlanta, Savannah, Augusta, Columbus).',
+                    '<strong>High-Efficiency Plumbing Act:</strong> Mandates WaterSense flow rates (1.28 gpf WCs, 0.5 gpf urinals) across all commercial projects.'
+                ]}
+            ]
+        },
+        'HI': { name: 'Hawaii', tier: 'hybrid', edition: '2018 IBC + Uniform Plumbing Code (UPC)', row: 8, col: 1, summary: 'Hawaii adopts the IBC for building/occupancy classification and the UPC for plumbing. Verify with County AHJ (Honolulu, Maui, Hawaii, Kauai) whether IBC Ch. 29 or UPC Table 422.1 governs fixture counts.' },
+        'ID': { name: 'Idaho', tier: 'hybrid', edition: '2018 IBC + Idaho State Plumbing Code (UPC)', row: 2, col: 3, summary: 'Idaho adopts the IBC for building code and a UPC-based State Plumbing Code. In most Idaho jurisdictions, IBC Chapter 29 Table 2902.1 still governs fixture count quantities while UPC governs pipe sizing/installation.' },
+        'IL': { name: 'Illinois', tier: 'custom', edition: 'Illinois Plumbing Code (77 Ill. Adm. Code 890)', row: 3, col: 6, summary: 'DOES NOT USE IPC TABLE 403.1. Illinois mandates the state-written Illinois Plumbing Code (Section 890.Appendix A, Table B) statewide (and Chicago has its own Municipal Code Chapter 18-29).',
+            cards: [
+                { title: 'Illinois Statewide Plumbing Code (77 Ill. Adm. Code 890)', items: [
+                    '<strong>Custom Fixture Table:</strong> Even where Illinois cities adopt the IBC for building code, the state-mandated <em>Illinois Plumbing Code</em> preempts IPC fixture ratios with custom state tables.',
+                    '<strong>City of Chicago (18-29-403):</strong> Chicago uses a modified IPC-style table with Chicago-specific amendments for assembly, restaurants, and mercantile spaces.'
+                ]}
+            ]
+        },
+        'IN': { name: 'Indiana', tier: 'supported', edition: 'Indiana Building Code (IBC Baseline)', row: 3, col: 7, summary: 'Indiana Building Code (675 IAC 13) adopts IBC Chapter 29 Table 2902.1 statewide for minimum plumbing fixture counts.' },
+        'IA': { name: 'Iowa', tier: 'hybrid', edition: '2021 IBC + 2021 UPC', row: 3, col: 5, summary: 'Iowa adopts the UPC for state plumbing installations, while local municipalities (Des Moines, Cedar Rapids) adopt the IBC. Confirm whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
+        'KS': { name: 'Kansas', tier: 'hybrid', edition: 'Home-Rule (IBC + IPC or UPC)', row: 4, col: 5, summary: 'Home-rule state. All major cities use the IBC for building code; Wichita/Sedgwick County uses the UPC for plumbing while Overland Park, Olathe, and Kansas City Metro use IBC Table 2902.1 / IPC.' },
+        'KY': { name: 'Kentucky', tier: 'custom', edition: '2018 Kentucky Building Code + KY State Plumbing Code', row: 4, col: 7, summary: 'Kentucky enforces a state-written Plumbing Code (815 KAR Chapter 20) that modifies several fixture count ratios away from standard IPC Table 403.1.' },
+        'LA': { name: 'Louisiana', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide (LSUCCC)', row: 6, col: 5, summary: 'Louisiana State Uniform Construction Code Council (LSUCCC) mandates the 2021 IBC and 2021 IPC statewide (having transitioned away from the state plumbing code to standard IPC Table 403.1).' },
+        'ME': { name: 'Maine', tier: 'hybrid', edition: '2015/2021 IBC (MUBEC) + 2021 UPC', row: 1, col: 11, summary: 'Maine Uniform Building and Energy Code (MUBEC) adopts the IBC, while the Maine Plumbers Examining Board adopts the UPC. Verify with local AHJ whether IBC Table 2902.1 or UPC Table 422.1 is enforced for counts.' },
+        'MD': { name: 'Maryland', tier: 'supported', edition: '2021 IBC + IPC / NSPC', row: 4, col: 9, summary: 'Maryland Building Performance Standards mandate the 2021 IBC statewide; most jurisdictions use IBC Table 2902.1 / IPC Table 403.1 for minimum fixture counts.' },
+        'MA': { name: 'Massachusetts', tier: 'custom', edition: '248 CMR 10.00 (Uniform State Plumbing Code)', row: 2, col: 11, summary: 'DOES NOT USE IPC TABLE 403.1. Massachusetts enforces its own state-written plumbing code (248 CMR 10.10 Table 1) with Massachusetts-specific fixture ratios and gender rules.' },
+        'MI': { name: 'Michigan', tier: 'supported', edition: '2021 Michigan Building & Plumbing Code (IBC / IPC)', row: 2, col: 7, summary: 'Michigan Building Code and Michigan Plumbing Code adopt standard IBC Table 2902.1 / IPC Table 403.1 fixture ratios statewide.' },
+        'MN': { name: 'Minnesota', tier: 'custom', edition: '2020 Minnesota Building Code + MN Plumbing Code (UPC)', row: 2, col: 5, summary: 'Minnesota amends IBC Chapter 29 (MN Rules 1305.2902) with custom state modifications to Table 2902.1 and adopts a UPC-based Plumbing Code.' },
+        'MS': { name: 'Mississippi', tier: 'supported', edition: '2018 / 2021 IBC & IPC', row: 6, col: 6, summary: 'Adopts the IBC and IPC across major municipalities (Jackson, Gulfport, Southaven, Hattiesburg) using standard Table 2902.1 / 403.1 fixture counts.' },
+        'MO': { name: 'Missouri', tier: 'hybrid', edition: 'Home-Rule (IBC + IPC or UPC)', row: 4, col: 6, summary: 'Home-rule state. St. Louis, Springfield, and Columbia adopt the IBC/IPC (Table 2902.1 / 403.1), while Kansas City adopts the IBC paired with the UPC.' },
+        'MT': { name: 'Montana', tier: 'hybrid', edition: '2021 IBC + 2021 UPC Statewide', row: 2, col: 4, summary: 'Montana adopts the 2021 IBC statewide for building code and the 2021 UPC for plumbing. Note: Montana Administrative Rules specifically retain IBC Table 2902.1 for determining minimum fixture quantities!' },
+        'NE': { name: 'Nebraska', tier: 'hybrid', edition: '2018 IBC + IPC or UPC Locally', row: 3, col: 4, summary: 'State baseline uses the 2018 IBC; Lincoln and Omaha enforce local plumbing codes (UPC-based) alongside IBC Chapter 29. Verify fixture table with local AHJ.' },
+        'NV': { name: 'Nevada', tier: 'hybrid', edition: '2018/2021/2024 IBC + UPC Locally', row: 4, col: 2, summary: 'Southern Nevada (Las Vegas, Clark County, Henderson) and Northern Nevada (Reno, Sparks) adopt the IBC for building code and the UPC for plumbing. In Southern Nevada, IBC Table 2902.1 is commonly used for fixture count determinations while UPC governs plumbing systems.',
+            cards: [
+                { title: 'Southern Nevada (Las Vegas, Clark County, Henderson, N. Las Vegas)', items: [
+                    '<strong>IBC Chapter 29 vs. UPC:</strong> Southern Nevada Amendments coordinate IBC Chapter 29 (Table 2902.1) for required fixture counts with the Uniform Plumbing Code (UPC) for pipe sizing and installation.',
+                    '<strong>Casino Gaming Areas:</strong> Use the dedicated <em>A-2 Casino Gaming Areas</em> subcategory (11 gross SF/occ load factor, tiered WC/Lav ratios).'
+                ]}
+            ]
+        },
+        'NH': { name: 'New Hampshire', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide', row: 2, col: 10, summary: 'New Hampshire State Building Code mandates the 2021 IBC and 2021 IPC statewide using standard Table 2902.1 / 403.1 fixture minimums.' },
+        'NJ': { name: 'New Jersey', tier: 'custom', edition: 'NJ Uniform Construction Code (2021 IBC + NSPC)', row: 3, col: 10, summary: 'New Jersey deletes IBC Chapter 29 and enforces the National Standard Plumbing Code (NSPC Section 7.21, Table 7.21.1) for plumbing fixture counts.' },
+        'NM': { name: 'New Mexico', tier: 'hybrid', edition: '2021 NM Building Code (IBC) + 2021 NM Plumbing Code (UPC)', row: 5, col: 4, summary: 'New Mexico adopts the 2021 IBC and 2021 UPC. Verify with CID or Albuquerque/Santa Fe AHJ whether IBC Table 2902.1 or UMP Table 422.1 is applied to your occupancy.' },
+        'NY': { name: 'New York', tier: 'supported', edition: '2020 / 2024 NY State Uniform Code & NYC Plumbing Code (IBC / IPC)', row: 2, col: 9, summary: 'Both New York State and New York City (NYC Plumbing Code Table 403.1) use the IBC / IPC Table 2902.1 / 403.1 fixture count baseline.',
+            cards: [
+                { title: 'New York State & New York City (NYCPC Table 403.1)', items: [
+                    '<strong>Fixture Ratio Baseline:</strong> Both NYS Uniform Code and NYC Plumbing Code use standard IPC Table 403.1 / IBC Table 2902.1 ratios.',
+                    '<strong>NYC Local Law 79 (Single-Occupant Restrooms):</strong> All single-occupant toilet rooms in NYC must be designated as all-gender.',
+                    '<strong>Urinal Substitution:</strong> Follows standard IPC 424.2 limits (67% in Group A/E, 50% in all others).'
+                ]}
+            ]
+        },
+        'NC': { name: 'North Carolina', tier: 'supported', edition: '2018 / 2024 NC Building & Plumbing Code (IBC / IPC)', row: 5, col: 9, summary: 'North Carolina State Building and Plumbing Codes mandate IBC Table 2902.1 / IPC Table 403.1 statewide (Charlotte, Raleigh, Durham, Greensboro).' },
+        'ND': { name: 'North Dakota', tier: 'hybrid', edition: '2021 IBC + ND State Plumbing Code (UPC)', row: 2, col: 6, summary: 'North Dakota adopts the IBC for building code and a UPC-based State Plumbing Code. Verify whether local AHJ (Fargo, Bismarck) enforces IBC Table 2902.1 or ND Plumbing Code Table 422.1.' },
+        'OH': { name: 'Ohio', tier: 'supported', edition: '2024 Ohio Building & Plumbing Code (2021 IBC / IPC)', row: 3, col: 8, summary: 'Ohio Board of Building Standards mandates the 2024 Ohio Building & Plumbing Codes (based on 2021 IBC/IPC) statewide using unamended Table 2902.1 / 403.1 fixture ratios.' },
+        'OK': { name: 'Oklahoma', tier: 'supported', edition: '2018 / 2021 IBC & IPC Statewide (OUBCC)', row: 5, col: 5, summary: 'Oklahoma Uniform Building Code Commission (OUBCC) mandates the IBC and IPC statewide (Oklahoma City, Tulsa, Norman) using standard Table 2902.1 / 403.1 ratios.' },
+        'OR': { name: 'Oregon', tier: 'supported', edition: '2022 Oregon Structural Specialty Code (2021 IBC Ch. 29)', row: 3, col: 1, summary: 'Although Oregon uses the Oregon Plumbing Specialty Code (UPC-based) for pipe sizing, Oregon explicitly mandates OSSC (IBC) Chapter 29 Table 2902.1 for determining minimum plumbing fixture counts!',
+            cards: [
+                { title: 'Oregon Structural Specialty Code (OSSC Chapter 29)', items: [
+                    '<strong>IBC Chapter 29 Controls Counts:</strong> Unlike California or Washington, Oregon deletes UPC Table 422.1 and requires all minimum fixture counts to be calculated using <strong>OSSC (IBC) Table 2902.1</strong>.',
+                    '<strong>All-Gender Facilities:</strong> Oregon OSSC 2902.2 explicitly permits non-separated multi-stall all-gender restrooms when privacy compartment rules are met.'
+                ]}
+            ]
+        },
+        'PA': { name: 'Pennsylvania', tier: 'supported', edition: 'PA Uniform Construction Code (2018 / 2021 IBC & IPC)', row: 3, col: 9, summary: 'Pennsylvania UCC mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios (including Philadelphia, which transitioned to the IPC).' },
+        'RI': { name: 'Rhode Island', tier: 'supported', edition: 'RI State Building & Plumbing Code (2021 IBC / IPC)', row: 3, col: 12, summary: 'Rhode Island Building Code Commission enforces the 2021 IBC and 2021 IPC statewide with standard Table 2902.1 / 403.1 fixture counts.' },
+        'SC': { name: 'South Carolina', tier: 'supported', edition: '2021 SC Building & Plumbing Code (IBC / IPC)', row: 5, col: 8, summary: 'South Carolina Building Codes Council mandates the 2021 IBC and 2021 IPC statewide (Charleston, Columbia, Greenville) using standard Table 2902.1 / 403.1.' },
+        'SD': { name: 'South Dakota', tier: 'hybrid', edition: '2021 IBC Locally + 2015 UPC Statewide', row: 2, col: 4, summary: 'South Dakota Plumbing Commission enforces the UPC statewide while cities (Sioux Falls, Rapid City) adopt the 2021 IBC. Verify whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
+        'TN': { name: 'Tennessee', tier: 'supported', edition: '2018 / 2021 IBC & IPC (State & Local)', row: 5, col: 7, summary: 'Adopts the IBC and IPC statewide and across major metros (Nashville, Memphis, Knoxville, Chattanooga) using standard Table 2902.1 / 403.1 fixture ratios.' },
+        'TX': { name: 'Texas', tier: 'supported', edition: 'IBC / IPC Statewide & Municipal (Dallas, Austin, SA, FW)', row: 7, col: 5, summary: 'Most Texas cities (Dallas, Fort Worth, San Antonio, El Paso, Plano, Arlington) adopt standard IBC Table 2902.1 / IPC Table 403.1. Note: Houston and Austin use the UPC for plumbing but coordinate with IBC.',
+            cards: [
+                { title: 'Dallas, Fort Worth, San Antonio & Statewide Texas', items: [
+                    '<strong>IBC / IPC Standard:</strong> Most Texas municipalities adopt the 2021 or 2024 IBC and IPC using standard Table 2902.1 / 403.1 ratios.',
+                    '<strong>Group B Separate Facilities:</strong> Several Texas cities raise the Group B single-user restroom threshold from 25 to 50 occupants.'
+                ]},
+                { title: 'Houston & Austin (UPC Plumbing Jurisdictions)', items: [
+                    '<strong>Verify Local Table:</strong> Houston and Austin adopt the Uniform Plumbing Code (UPC) alongside the IBC. Verify whether your project reviewer requires UPC Table 422.1 or IBC Table 2902.1.'
+                ]}
+            ]
+        },
+        'UT': { name: 'Utah', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide', row: 4, col: 3, summary: 'Utah Uniform Building Standards Act mandates the 2021 IBC and 2021 IPC statewide (Salt Lake City, Provo, St. George) using standard Table 2902.1 / 403.1 fixture ratios.' },
+        'VT': { name: 'Vermont', tier: 'supported', edition: '2015 / 2021 IBC & IPC Statewide', row: 1, col: 10, summary: 'Vermont Fire & Building Safety Code mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios.' },
+        'VA': { name: 'Virginia', tier: 'supported', edition: '2021 Virginia Uniform Statewide Building Code (IBC / IPC)', row: 4, col: 8, summary: 'Virginia USBC (VCC & VPC) mandates the 2021 IBC and 2021 IPC statewide using standard Table 2902.1 / 403.1 ratios.' },
+        'WA': { name: 'Washington', tier: 'custom', edition: '2021 WA State Building Code + UPC (Amended IBC 2902.1)', row: 2, col: 2, summary: 'Washington State retains IBC Chapter 29 for fixture counts, into which WA State injects custom state amendments (WAC 51-50-2900) and Bottle Filling Station mandates.' },
+        'WV': { name: 'West Virginia', tier: 'supported', edition: '2018 / 2021 IBC & IPC Statewide', row: 4, col: 7, summary: 'West Virginia State Building Code mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios.' },
+        'WI': { name: 'Wisconsin', tier: 'custom', edition: 'Wisconsin Commercial Building Code (SPS 361–366) & SPS 382', row: 2, col: 6, summary: 'Wisconsin uses the IBC as a base for its Commercial Building Code (SPS 362.2902) with Wisconsin-specific state plumbing modifications under SPS 382.' },
+        'WY': { name: 'Wyoming', tier: 'supported', edition: '2021 / 2024 IBC & IPC', row: 3, col: 3, summary: 'Wyoming and its major municipalities (Cheyenne, Casper, Laramie, Jackson) adopt the IBC and IPC using standard Table 2902.1 / 403.1 fixture ratios.' }
+    };
+
+    // Fix overlapping grid coordinates for clean 12x8 tile map
+    const mapGridCoords = {
+        'AK': [1, 1], 'ME': [1, 12],
+        'WA': [2, 2], 'MT': [2, 4], 'ND': [2, 5], 'MN': [2, 6], 'WI': [2, 7], 'MI': [2, 8], 'VT': [2, 10], 'NH': [2, 11],
+        'OR': [3, 2], 'ID': [3, 3], 'WY': [3, 4], 'SD': [3, 5], 'IA': [3, 6], 'IL': [3, 7], 'IN': [3, 8], 'OH': [3, 9], 'PA': [3, 10], 'NY': [3, 11], 'MA': [3, 12],
+        'CA': [4, 2], 'NV': [4, 3], 'UT': [4, 4], 'CO': [4, 5], 'NE': [4, 6], 'MO': [4, 7], 'KY': [4, 8], 'WV': [4, 9], 'VA': [4, 10], 'MD': [4, 11], 'CT': [4, 12],
+        'AZ': [5, 3], 'NM': [5, 4], 'KS': [5, 5], 'AR': [5, 6], 'TN': [5, 7], 'NC': [5, 9], 'SC': [5, 10], 'DE': [5, 11], 'NJ': [5, 12],
+        'OK': [6, 5], 'LA': [6, 6], 'MS': [6, 7], 'AL': [6, 8], 'GA': [6, 9], 'DC': [6, 11], 'RI': [6, 12],
+        'HI': [7, 1], 'TX': [7, 5], 'FL': [7, 10]
+    };
+
+    // =========================================================================
+    // 2. IBC 2902.1 / IPC 403.1 FRACTIONAL LOGIC ENGINE
+    // =========================================================================
+    function ibcTwoTier(val, tier1Limit, div1, div2) {
+        if (val <= 0) return 0;
+        if (val <= tier1Limit) {
+            return val / div1;
+        }
+        const tier1Fixtures = tier1Limit / div1;
+        return tier1Fixtures + (val - tier1Limit) / div2;
+    }
+
+    function getIbcTwoTierMath(val, tier1Limit, div1, div2, fixtureName) {
+        if (val <= 0) return `<p>${fixtureName}: 0.00</p>`;
+        const fmtVal = Number.isInteger(val) ? val : val.toFixed(1);
+        if (val <= tier1Limit) {
+            const total = val / div1;
+            return `<p>${fixtureName}: ${fmtVal} occ × (1/${div1} for first ${tier1Limit}) = <strong>${total.toFixed(2)}</strong></p>`;
+        }
+        const tier1Fixtures = tier1Limit / div1;
+        const rem = val - tier1Limit;
+        const fmtRem = Number.isInteger(rem) ? rem : rem.toFixed(1);
+        const remFixtures = rem / div2;
+        const total = tier1Fixtures + remFixtures;
+        return `<p>${fixtureName}: First ${tier1Limit} occ = ${tier1Fixtures.toFixed(2)} (1/${div1}) + Remaining ${fmtRem} occ × (1/${div2}) = ${remFixtures.toFixed(2)}, Total = <strong>${total.toFixed(2)}</strong></p>`;
+    }
+
+    function linear(val, divisor) {
+        if (val <= 0 || divisor <= 0) return 0;
+        return val / divisor;
+    }
+    
+    function getLinearMath(val, divisor, fixtureName) {
+        if (val <= 0 || divisor <= 0) return `<p>${fixtureName}: 0.00</p>`;
+        const fmtVal = Number.isInteger(val) ? val : val.toFixed(1);
+        return `<p>${fixtureName}: ${fmtVal} occ × 1/${divisor} = <strong>${(val/divisor).toFixed(2)}</strong></p>`;
+    }
+
+    // Complete 2021 / 2024 IBC Table 2902.1 / IPC Table 403.1 Occupancy Definitions
+    // Includes Concentrated Business & Accessory Conference Room subcategories
+    const occupancyData = {
+        'A-1': {
+            rootId: 'A-1', rootLabel: 'Group A-1 Assembly (Theaters)', label: 'A-1 Assembly (Theaters, concert halls - fixed seating)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 125), mathMWC: (m) => getLinearMath(m, 125, 'WC (M)'),
+            fWC: (f) => linear(f, 65), mathFWC: (f) => getLinearMath(f, 65, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-2-Rest': {
+            rootId: 'A-2-Rest', rootLabel: 'Group A-2 (Restaurants / Banquet)', label: 'A-2 Restaurants, Banquet Halls, Food Courts (15 net SF)', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 75), mathMWC: (m) => getLinearMath(m, 75, 'WC (M)'),
+            fWC: (f) => linear(f, 75), mathFWC: (f) => getLinearMath(f, 75, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-2-Bar': {
+            rootId: 'A-2-Bar', rootLabel: 'Group A-2 (Nightclubs / Bars)', label: 'A-2 Nightclubs, Bars, Taverns, Dance Halls (15 net / 5 standing SF)', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 40), mathMWC: (m) => getLinearMath(m, 40, 'WC (M)'),
+            fWC: (f) => linear(f, 40), mathFWC: (f) => getLinearMath(f, 40, 'WC (F)'),
+            mLav: (m) => linear(m, 75), mathMLav: (m) => getLinearMath(m, 75, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 75), mathFLav: (f) => getLinearMath(f, 75, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-2-Casino': {
+            rootId: 'A-2-Casino', rootLabel: 'Group A-2 (Casino Gaming)', label: 'A-2 Casino Gaming Areas (11 gross SF)', calcType: 'area', defaultFactor: 11, urinalSubRate: 0.67,
+            mWC: (m) => ibcTwoTier(m, 400, 100, 250), mathMWC: (m) => getIbcTwoTierMath(m, 400, 100, 250, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 400, 100, 250), mathFWC: (f) => getIbcTwoTierMath(f, 400, 100, 250, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 750, 250, 500), mathMLav: (m) => getIbcTwoTierMath(m, 750, 250, 500, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 750, 250, 500), mathFLav: (f) => getIbcTwoTierMath(f, 750, 250, 500, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'A-3': {
+            rootId: 'A-3', rootLabel: 'Group A-3 Assembly (General)', label: 'A-3 Auditoriums, Museums, Libraries, Galleries, Gyms (30 net SF)', calcType: 'area', defaultFactor: 30, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 125), mathMWC: (m) => getLinearMath(m, 125, 'WC (M)'),
+            fWC: (f) => linear(f, 65), mathFWC: (f) => getLinearMath(f, 65, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-3-Worship': {
+            rootId: 'A-3-Worship', rootLabel: 'Group A-3 (Places of Worship)', label: 'A-3 Places of Religious Worship (15 net SF or Fixed Seats)', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 150), mathMWC: (m) => getLinearMath(m, 150, 'WC (M)'),
+            fWC: (f) => linear(f, 75), mathFWC: (f) => getLinearMath(f, 75, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'A-3-Terminal': {
+            rootId: 'A-3-Terminal', rootLabel: 'Group A-3 (Passenger Terminals)', label: 'A-3 Passenger Terminals & Transportation Facilities (100 gross SF)', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 500), mathMWC: (m) => getLinearMath(m, 500, 'WC (M)'),
+            fWC: (f) => linear(f, 500), mathFWC: (f) => getLinearMath(f, 500, 'WC (F)'),
+            mLav: (m) => linear(m, 750), mathMLav: (m) => getLinearMath(m, 750, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 750), mathFLav: (f) => getLinearMath(f, 750, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'A-4': {
+            rootId: 'A-4', rootLabel: 'Group A-4 Assembly (Indoor Arenas)', label: 'A-4 Indoor Sporting Events / Arenas (Spectator Seating)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => ibcTwoTier(m, 1500, 75, 120), mathMWC: (m) => getIbcTwoTierMath(m, 1500, 75, 120, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 1520, 40, 60), mathFWC: (f) => getIbcTwoTierMath(f, 1520, 40, 60, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 150), mathFLav: (f) => getLinearMath(f, 150, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'A-5': {
+            rootId: 'A-5', rootLabel: 'Group A-5 Assembly (Stadiums)', label: 'A-5 Stadiums, Amusement Parks, Grandstands (Outdoor)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => ibcTwoTier(m, 1500, 75, 120), mathMWC: (m) => getIbcTwoTierMath(m, 1500, 75, 120, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 1520, 40, 60), mathFWC: (f) => getIbcTwoTierMath(f, 1520, 40, 60, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 150), mathFLav: (f) => getLinearMath(f, 150, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'B': {
+            rootId: 'B', rootLabel: 'Group B Business', label: 'B Business - Standard (Office, Professional, Outpatient - 150 gross SF)', calcType: 'area', defaultFactor: 150, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 80, 40, 80), mathMLav: (m) => getIbcTwoTierMath(m, 80, 40, 80, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 80, 40, 80), mathFLav: (f) => getIbcTwoTierMath(f, 80, 40, 80, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'B-Concentrated': {
+            rootId: 'B', rootLabel: 'Group B Business', label: 'B Business - Concentrated Use (Call Centers, Trading Floors - 50 gross SF)', calcType: 'area', defaultFactor: 50, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 80, 40, 80), mathMLav: (m) => getIbcTwoTierMath(m, 80, 40, 80, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 80, 40, 80), mathFLav: (f) => getIbcTwoTierMath(f, 80, 40, 80, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'B-Conference': {
+            rootId: 'B', rootLabel: 'Group B Business', label: 'B Business - Accessory Conference / Meeting Room (< 50 occ, IBC 303.1.2 - 15 net SF)', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 80, 40, 80), mathMLav: (m) => getIbcTwoTierMath(m, 80, 40, 80, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 80, 40, 80), mathFLav: (f) => getIbcTwoTierMath(f, 80, 40, 80, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'B-Training': {
+            rootId: 'B', rootLabel: 'Group B Business', label: 'B Business - Accessory Training Room / Chairs Only (< 50 occ - 7 net SF)', calcType: 'area', defaultFactor: 7, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 80, 40, 80), mathMLav: (m) => getIbcTwoTierMath(m, 80, 40, 80, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 80, 40, 80), mathFLav: (f) => getIbcTwoTierMath(f, 80, 40, 80, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'E': {
+            rootId: 'E', rootLabel: 'Group E Educational', label: 'E Educational (Schools & Classrooms - 20 net SF)', calcType: 'area', defaultFactor: 20, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 50), mathMWC: (m) => getLinearMath(m, 50, 'WC (M)'),
+            fWC: (f) => linear(f, 50), mathFWC: (f) => getLinearMath(f, 50, 'WC (F)'),
+            mLav: (m) => linear(m, 50), mathMLav: (m) => getLinearMath(m, 50, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 50), mathFLav: (f) => getLinearMath(f, 50, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'F': {
+            rootId: 'F', rootLabel: 'Group F Factory / Industrial', label: 'F-1, F-2 Factory & Industrial (100 gross SF)', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 100), mathMWC: (m) => getLinearMath(m, 100, 'WC (M)'),
+            fWC: (f) => linear(f, 100), mathFWC: (f) => getLinearMath(f, 100, 'WC (F)'),
+            mLav: (m) => linear(m, 100), mathMLav: (m) => getLinearMath(m, 100, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 100), mathFLav: (f) => getLinearMath(f, 100, 'Lavatory (F)'),
+            df: (t) => linear(t, 400), mathDF: (t) => getLinearMath(t, 400, 'Drinking Fountains')
+        },
+        'I-1': {
+            rootId: 'I-1', rootLabel: 'Group I-1 Institutional', label: 'I-1 Custodial Care (Assisted Living / Group Homes - 200 gross SF)', calcType: 'area', defaultFactor: 200, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'I-2-Rooms': { rootId: 'I-2-Rooms', rootLabel: 'Group I-2 Hospital Patient Rooms', label: 'I-2 Medical / Nursing Care (Patient Sleeping Rooms)', calcType: 'units' },
+        'I-2-Employees': {
+            rootId: 'I-2-Employees', rootLabel: 'Group I-2 Employees', label: 'I-2 Hospital / Care Employees (Non-Patient Areas - 100 gross SF)', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 25), mathMWC: (m) => getLinearMath(m, 25, 'WC (M)'),
+            fWC: (f) => linear(f, 25), mathFWC: (f) => getLinearMath(f, 25, 'WC (F)'),
+            mLav: (m) => linear(m, 35), mathMLav: (m) => getLinearMath(m, 35, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 35), mathFLav: (f) => getLinearMath(f, 35, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'I-2-Visitors': {
+            rootId: 'I-2-Visitors', rootLabel: 'Group I-2 Visitors', label: 'I-2 Hospital Waiting / Visitor Areas (100 gross SF)', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 75), mathMWC: (m) => getLinearMath(m, 75, 'WC (M)'),
+            fWC: (f) => linear(f, 75), mathFWC: (f) => getLinearMath(f, 75, 'WC (F)'),
+            mLav: (m) => linear(m, 100), mathMLav: (m) => getLinearMath(m, 100, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 100), mathFLav: (f) => getLinearMath(f, 100, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'I-3-Cells': { rootId: 'I-3-Cells', rootLabel: 'Group I-3 Prisons (Cells)', label: 'I-3 Prisons / Correctional Centers (Individual Cells)', calcType: 'units' },
+        'I-4': {
+            rootId: 'I-4', rootLabel: 'Group I-4 Adult/Child Daycare', label: 'I-4 Daycare Facilities (Care < 24 hrs - 35 net SF)', calcType: 'area', defaultFactor: 35, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 15), mathMWC: (m) => getLinearMath(m, 15, 'WC (M)'),
+            fWC: (f) => linear(f, 15), mathFWC: (f) => getLinearMath(f, 15, 'WC (F)'),
+            mLav: (m) => linear(m, 15), mathMLav: (m) => getLinearMath(m, 15, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 15), mathFLav: (f) => getLinearMath(f, 15, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'M': {
+            rootId: 'M', rootLabel: 'Group M Mercantile', label: 'M Mercantile (Retail Sales, Department Stores - 60 gross SF)', calcType: 'area', defaultFactor: 60, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 500), mathMWC: (m) => getLinearMath(m, 500, 'WC (M)'),
+            fWC: (f) => linear(f, 500), mathFWC: (f) => getLinearMath(f, 500, 'WC (F)'),
+            mLav: (m) => linear(m, 750), mathMLav: (m) => getLinearMath(m, 750, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 750), mathFLav: (f) => getLinearMath(f, 750, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'R-1': { rootId: 'R-1', rootLabel: 'Group R-1 Hotels / Motels', label: 'R-1 Hotels, Motels, Boarding Houses (Sleeping Units)', calcType: 'units' },
+        'R-2-Dorm': {
+            rootId: 'R-2-Dorm', rootLabel: 'Group R-2 Dormitories', label: 'R-2 Dormitories, Fraternities, Sororities (50 gross SF)', calcType: 'area', defaultFactor: 50, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'R-2-Apt': { rootId: 'R-2-Apt', rootLabel: 'Group R-2 Apartment Dwelling Units', label: 'R-2 Apartment House / Multifamily Dwelling Units', calcType: 'units' },
+        'R-3-Dwelling': { rootId: 'R-3-Dwelling', rootLabel: 'Group R-3 Dwellings', label: 'R-3 One- and Two-Family Dwellings', calcType: 'units' },
+        'R-4': {
+            rootId: 'R-4', rootLabel: 'Group R-4 Congregate Living', label: 'R-4 Residential Care / Assisted Living (<= 16 occ - 200 gross SF)', calcType: 'area', defaultFactor: 200, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'S': {
+            rootId: 'S', rootLabel: 'Group S Storage / Warehouse', label: 'S-1, S-2 Storage (Warehouses, Freight Depots - 300 gross SF)', calcType: 'area', defaultFactor: 300, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 100), mathMWC: (m) => getLinearMath(m, 100, 'WC (M)'),
+            fWC: (f) => linear(f, 100), mathFWC: (f) => getLinearMath(f, 100, 'WC (F)'),
+            mLav: (m) => linear(m, 100), mathMLav: (m) => getLinearMath(m, 100, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 100), mathFLav: (f) => getLinearMath(f, 100, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        }
+    };
+
+    const halftoneColors = [
+        '#ccfbf1', // teal-100
+        '#dbeafe', // blue-100
+        '#fef3c7', // yellow-100
+        '#dcfce7', // green-100
+        '#f3e8ff', // purple-100
+        '#ffedd5', // orange-100
+        '#fee2e2', // red-100
+        '#fce7f3'  // pink-100
+    ];
+
+    // =========================================================================
+    // 3. STATE MANAGEMENT & JURISDICTION MAP DRAWER LOGIC
+    // =========================================================================
+    let selectedStateCode = 'AZ';
+    let splitMode = 'exact'; // 'exact' (Pure IBC 50/50) or 'ceil' (Round up odd splits)
+    let spaces = [];
+
+    function loadStateFromURL() {
+        if (window.location.hash && window.location.hash.length > 1) {
+            try {
+                const encoded = window.location.hash.substring(1);
+                const parsed = JSON.parse(decodeURIComponent(atob(encoded)));
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    spaces = parsed;
+                    return true;
+                } else if (parsed && Array.isArray(parsed.spaces)) {
+                    spaces = parsed.spaces;
+                    if (parsed.state && stateJurisdictions[parsed.state]) selectedStateCode = parsed.state;
+                    if (parsed.splitMode) splitMode = parsed.splitMode;
+                    return true;
+                }
+            } catch(e) {
+                console.error("Could not parse shared link data", e);
+            }
+        }
+        return false;
+    }
+
+    if (!loadStateFromURL()) {
+        spaces = [
+            { id: Date.now(), name: 'Suite 100 - Open Office', type: 'B', area: 12000, factor: 150, seats: 0, units: 0 },
+            { id: Date.now() + 1, name: 'Suite 100 - Boardroom / Conference', type: 'B-Conference', area: 450, factor: 15, seats: 0, units: 0 }
+        ];
+    }
+
+    function updateURLHashSilently() {
+        try {
+            const payload = { state: selectedStateCode, splitMode: splitMode, spaces: spaces };
+            const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+            history.replaceState(null, null, '#' + encoded);
+        } catch(e) {}
+    }
+
+    function toggleMapDrawer(forceClose = false) {
+        const drawer = document.getElementById('jurisdiction-drawer');
+        const chevron = document.getElementById('drawer-chevron');
+        const isOpen = forceClose ? false : !drawer.classList.contains('open');
+        if (isOpen) {
+            drawer.classList.add('open');
+            chevron.innerText = '▴';
+        } else {
+            drawer.classList.remove('open');
+            chevron.innerText = '▾';
+        }
+    }
+
+    function renderJurisdictionSelector(filterText = '') {
+        const listContainer = document.getElementById('state-list-container');
+        const mapContainer = document.getElementById('us-grid-map');
+        listContainer.innerHTML = '';
+        mapContainer.innerHTML = '';
+
+        const q = filterText.trim().toLowerCase();
+        const sortedCodes = Object.keys(stateJurisdictions).sort((a, b) => stateJurisdictions[a].name.localeCompare(stateJurisdictions[b].name));
+
+        // Render Scrollable Search List
+        sortedCodes.forEach(code => {
+            const st = stateJurisdictions[code];
+            if (q && !st.name.toLowerCase().includes(q) && !code.toLowerCase().includes(q) && !st.edition.toLowerCase().includes(q)) {
+                return;
+            }
+            const item = document.createElement('div');
+            item.className = 'state-list-item' + (code === selectedStateCode ? ' active' : '');
+            item.id = 'list-state-' + code;
+            item.onmouseenter = () => highlightStateHover(code, true);
+            item.onmouseleave = () => highlightStateHover(code, false);
+            item.onclick = () => selectJurisdiction(code, true);
+
+            const dotClass = st.tier === 'supported' ? 'tier-supported' : st.tier === 'hybrid' ? 'tier-hybrid' : 'tier-custom';
+            item.innerHTML = `
+                <span><strong>${st.name}</strong> <span style="color:var(--text-muted); font-size:0.7rem;">(${code})</span></span>
+                <span class="tier-dot ${dotClass}" title="${st.edition}"></span>
+            `;
+            listContainer.appendChild(item);
+        });
+
+        // Render Interactive US Tile Map
+        Object.keys(mapGridCoords).forEach(code => {
+            const st = stateJurisdictions[code];
+            const [r, c] = mapGridCoords[code];
+            const tile = document.createElement('div');
+            tile.className = `state-tile ${st.tier}` + (code === selectedStateCode ? ' active' : '');
+            tile.id = 'tile-state-' + code;
+            tile.style.gridRow = r;
+            tile.style.gridColumn = c;
+            tile.innerText = code;
+            tile.onmouseenter = () => highlightStateHover(code, true);
+            tile.onmouseleave = () => highlightStateHover(code, false);
+            tile.onclick = () => selectJurisdiction(code, true);
+            mapContainer.appendChild(tile);
+        });
+    }
+
+    function filterStateList(val) {
+        renderJurisdictionSelector(val);
+    }
+
+    function highlightStateHover(code, isEntering) {
+        const listEl = document.getElementById('list-state-' + code);
+        const tileEl = document.getElementById('tile-state-' + code);
+        if (listEl) listEl.classList.toggle('hovered', isEntering);
+        if (tileEl) tileEl.classList.toggle('hovered', isEntering);
+
+        const previewEl = document.getElementById('map-hover-preview');
+        if (isEntering && stateJurisdictions[code]) {
+            const st = stateJurisdictions[code];
+            const badgeText = st.tier === 'supported' ? 'Standard IBC/IPC' : st.tier === 'hybrid' ? 'Hybrid / Verify AHJ' : 'Custom State Code';
+            previewEl.innerHTML = `
+                <div>
+                    <strong>${st.name} (${code}) — ${st.edition}:</strong>
+                    <span style="color: var(--text-muted); margin-left: 4px;">${st.summary}</span>
+                </div>
+                <span class="tier-badge ${st.tier}" style="white-space:nowrap;">${badgeText}</span>
+            `;
+        }
+    }
+
+    function selectJurisdiction(code, collapseDrawer = true) {
+        if (!stateJurisdictions[code]) return;
+        selectedStateCode = code;
+        const st = stateJurisdictions[code];
+
+        // Update Top Pill Bar
+        document.getElementById('active-state-name').innerText = st.name;
+        const badgeEl = document.getElementById('active-state-badge');
+        badgeEl.className = 'tier-badge ' + st.tier;
+        badgeEl.innerText = st.tier === 'supported' ? 'Standard IBC / IPC Baseline' :
+                            st.tier === 'hybrid' ? 'Hybrid IBC + UPC Jurisdiction' :
+                            'Custom State Plumbing Code';
+        document.getElementById('active-state-edition').innerText = st.edition;
+
+        // Update Warning Banner for Hybrid / Custom States
+        const alertBanner = document.getElementById('state-alert-banner');
+        if (st.tier === 'supported') {
+            alertBanner.className = 'state-alert-banner';
+            alertBanner.innerHTML = '';
+        } else if (st.tier === 'hybrid') {
+            alertBanner.className = 'state-alert-banner hybrid';
+            alertBanner.innerHTML = `<strong>⚠️ Hybrid Code Notice (${st.name} — ${st.edition}):</strong> ${st.summary}`;
+        } else {
+            alertBanner.className = 'state-alert-banner custom';
+            alertBanner.innerHTML = `<strong>🚫 Non-IPC Plumbing Table Warning (${st.name} — ${st.edition}):</strong> ${st.summary}`;
+        }
+
+        // Update Dynamic Bottom Collapsible Footnote
+        updateStateFootnotes(code);
+
+        // Re-render active highlights & collapse drawer so user can focus on calculator
+        renderJurisdictionSelector(document.getElementById('state-search-input').value);
+        if (collapseDrawer) {
+            toggleMapDrawer(true);
+        }
+        updateURLHashSilently();
+    }
+
+    function updateStateFootnotes(code) {
+        const st = stateJurisdictions[code];
+        const summaryEl = document.getElementById('amendments-summary');
+        const contentEl = document.getElementById('amendments-content');
+
+        summaryEl.innerHTML = `📌 Local Amendments &amp; AHJ Code Footnotes: ${st.name} (${st.edition})`;
+
+        let cardsHtml = '';
+        if (st.cards && st.cards.length > 0) {
+            cardsHtml = `<div class="amendments-grid">` + st.cards.map(card => `
+                <div class="amendment-card">
+                    <h4>${card.title}</h4>
+                    <ul>${card.items.map(i => `<li>${i}</li>`).join('')}</ul>
+                </div>
+            `).join('') + `</div>`;
+        } else {
+            // Default National IBC / IPC Footnotes for states without custom cards
+            cardsHtml = `
+                <div class="amendments-grid">
+                    <div class="amendment-card">
+                        <h4>${st.name} Adoption Summary (${st.edition})</h4>
+                        <ul>
+                            <li>${st.summary}</li>
+                            <li><strong>Fractional Aggregation (IBC 2902.1 / IPC 403.1):</strong> Fractional fixture requirements for multiple occupancies are summed first and then rounded up to the next whole number.</li>
+                        </ul>
+                    </div>
+                    <div class="amendment-card">
+                        <h4>Separate Facilities Exemptions (IBC 2902.2 / IPC 403.2)</h4>
+                        <ul>
+                            <li><strong>All Occupancies <= 15 Occupants:</strong> Separate male/female facilities are not required for spaces with a total occupant load of 15 or fewer (a single unisex toilet room suffices).</li>
+                            <li><strong>Group B (Business) &amp; Group M (Mercantile):</strong> Separate facilities are not required in Group M <= 100 occupants or Group B <= 25 occupants (50 in jurisdictions adopting the 2024 or local Group B threshold amendment).</li>
+                        </ul>
+                    </div>
+                    <div class="amendment-card">
+                        <h4>All-Gender &amp; Single-User Facilities (2021 / 2024 IBC)</h4>
+                        <ul>
+                            <li><strong>Single-Occupant Restrooms (IBC 2902.1.2):</strong> Permitted to count toward the total number of required plumbing fixtures.</li>
+                            <li><strong>Multi-Stall All-Gender (IBC 2902.2 Exc. 6):</strong> Permitted where each water closet and urinal is enclosed in a private stall complying with IPC Section 405.3.4.</li>
+                        </ul>
+                    </div>
+                    <div class="amendment-card">
+                        <h4>Concentrated Business &amp; Accessory Assembly (IBC Ch. 10)</h4>
+                        <ul>
+                            <li><strong>Concentrated Business Use (Table 1004.5):</strong> Call centers, trading floors, and high-density benching require <strong>50 gross SF/occupant</strong> rather than standard 150 gross SF/occupant.</li>
+                            <li><strong>Conference Rooms < 50 Occupants (IBC 303.1.2):</strong> Classified as Group B Business, but calculated at <strong>15 net SF/occupant</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        contentEl.innerHTML = `
+            <p style="margin-top: 0;"><strong>Active State Overview (${st.name}):</strong> ${st.summary}</p>
+            ${cardsHtml}
+        `;
+    }
+
+    function updateSplitMode(mode) {
+        splitMode = mode;
+        calculateTotals();
+        updateURLHashSilently();
+    }
+
+    // =========================================================================
+    // 4. SPACE CARDS & FRACTIONAL AGGREGATION WORKFLOW
+    // =========================================================================
+    function getRootColorMap() {
+        const map = {};
+        let colorIndex = 0;
+        spaces.forEach(space => {
+            const logic = occupancyData[space.type] || occupancyData['B'];
+            const rId = logic.rootId;
+            if (!map[rId]) {
+                map[rId] = halftoneColors[colorIndex % halftoneColors.length];
+                colorIndex++;
+            }
+        });
+        return map;
+    }
+
+    function printReport() {
+        const details = document.querySelectorAll('details');
+        details.forEach(d => d.setAttribute('open', 'true'));
+        toggleMapDrawer(true);
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    function generateShareLink() {
+        updateURLHashSilently();
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.getElementById('share-btn');
+            const originalText = btn.innerText;
+            btn.innerText = '✓ Copied';
+            btn.style.backgroundColor = 'var(--success)';
+            btn.style.color = 'white';
+            btn.style.borderColor = 'var(--success)';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style = '';
+            }, 2500);
+        });
+    }
+
+    function exportData() {
+        const payload = { state: selectedStateCode, splitMode: splitMode, spaces: spaces };
+        const dataStr = JSON.stringify(payload, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `IBC_IPC_Plumbing_Calc_${selectedStateCode}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (Array.isArray(parsed)) {
+                    spaces = parsed;
+                } else if (parsed && Array.isArray(parsed.spaces)) {
+                    spaces = parsed.spaces;
+                    if (parsed.state && stateJurisdictions[parsed.state]) {
+                        selectJurisdiction(parsed.state, true);
+                    }
+                    if (parsed.splitMode) {
+                        splitMode = parsed.splitMode;
+                        document.getElementById('split-mode-select').value = splitMode;
+                    }
+                } else {
+                    alert("Invalid format: The file must contain valid space data.");
+                    return;
+                }
+                renderSpaces();
+                updateURLHashSilently();
+            } catch (err) {
+                alert("Error reading file. Ensure it is a valid JSON file.");
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    let draggedId = null;
+
+    function handleDragStart(e, id) {
+        if (['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) { 
+            e.preventDefault(); 
+            return; 
+        }
+        draggedId = id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
+        setTimeout(() => e.target.closest('.space-card').classList.add('dragging'), 0);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const card = e.target.closest('.space-card');
+        if (card) card.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) { 
+        const card = e.target.closest('.space-card');
+        if (card && !card.contains(e.relatedTarget)) {
+            card.classList.remove('drag-over');
+        }
+    }
+
+    function handleDrop(e, targetId) {
+        e.preventDefault();
+        document.querySelectorAll('.space-card').forEach(c => c.classList.remove('drag-over'));
+        
+        if (draggedId !== null && draggedId !== targetId) {
+            const fromIndex = spaces.findIndex(s => s.id === draggedId);
+            const toIndex = spaces.findIndex(s => s.id === targetId);
+            
+            if (fromIndex > -1 && toIndex > -1) {
+                const draggedSpace = spaces.splice(fromIndex, 1)[0];
+                spaces.splice(toIndex, 0, draggedSpace);
+                renderSpaces();
+                updateURLHashSilently();
+            }
+        }
+    }
+
+    function handleDragEnd() {
+        document.querySelectorAll('.space-card').forEach(c => {
+            c.classList.remove('dragging');
+            c.classList.remove('drag-over');
+        });
+        draggedId = null;
+    }
+
+    function renderSpaces() {
+        const container = document.getElementById('spaces-container');
+        const currentHeight = container.getBoundingClientRect().height;
+        container.style.minHeight = currentHeight + 'px';
+        container.innerHTML = '';
+        const rootColorMap = getRootColorMap();
+        
+        spaces.forEach((space) => {
+            if (!occupancyData[space.type]) space.type = 'B';
+            const div = document.createElement('div');
+            div.className = 'space-card';
+            div.draggable = true;
+            div.style.cursor = 'grab';
+            
+            const spaceColor = rootColorMap[occupancyData[space.type].rootId];
+            div.style.borderLeft = `5px solid ${spaceColor}`;
+            
+            div.ondragstart = (e) => handleDragStart(e, space.id);
+            div.ondragover = handleDragOver;
+            div.ondragleave = handleDragLeave;
+            div.ondrop = (e) => handleDrop(e, space.id);
+            div.ondragend = handleDragEnd;
+            
+            const sortedKeys = Object.keys(occupancyData).sort((a, b) => occupancyData[a].label.localeCompare(occupancyData[b].label));
+            let optionsHtml = '';
+            for(const key of sortedKeys) {
+                optionsHtml += `<option value="${key}" ${space.type === key ? 'selected' : ''}>${occupancyData[key].label}</option>`;
+            }
+            
+            const logic = occupancyData[space.type];
+            let badgeHtml = logic.calcType === 'area' ? '<span class="badge">Area-Based (IBC 1004.5)</span>' : 
+                            logic.calcType === 'seats' ? '<span class="badge seats">Fixed Seating</span>' : 
+                            '<span class="badge units">Unit / Cell Based</span>';
+            
+            let inputsHtml = '';
+            let statsHtml = '';
+
+            if(logic.calcType === 'area') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Floor Area (sq ft)</label>
+                        <input type="number" value="${space.area}" min="0" oninput="updateSpaceField(${space.id}, 'area', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label>IBC Load Factor (SF/Occ)</label>
+                        <input type="number" value="${space.factor}" min="1" oninput="updateSpaceField(${space.id}, 'factor', this.value)">
+                    </div>`;
+            } else if (logic.calcType === 'seats') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Number of Fixed Seats</label>
+                        <input type="number" value="${space.seats || 0}" min="0" oninput="updateSpaceField(${space.id}, 'seats', this.value)">
+                    </div>`;
+            } else if (logic.calcType === 'units') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Number of Units / Rooms / Cells</label>
+                        <input type="number" value="${space.units || 0}" min="0" oninput="updateSpaceField(${space.id}, 'units', this.value)">
+                    </div>`;
+            }
+
+            if(logic.calcType === 'area' || logic.calcType === 'seats') {
+                statsHtml = `
+                    <div style="margin-top: 1rem;">
+                        <span style="color: var(--text-main); font-size: 0.8rem; margin-right: 0.5rem; font-weight: bold;">Base Occupants:</span>
+                        <span class="table-header-value" id="row-total-${space.id}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 600; color: var(--text-main); background: #e4e4e7; padding: 0.15rem 0.4rem; border-radius: 4px; display: inline-block;">0</span>
+                    </div>`;
+            } else if (logic.calcType === 'units') {
+                statsHtml = `
+                    <div class="table-wrapper">
+                    <table class="calc-table">
+                        <tr>
+                            <th class="fixture-header"><span class="table-header-title">Private/Unit Fixtures (1 WC &amp; 1 Lav per unit)</span></th>
+                        </tr>
+                        <tr>
+                            <td><span class="fixture-value" id="row-uwc-${space.id}">0</span></td>
+                        </tr>
+                    </table>
+                    </div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="space-header">
+                    <div class="space-header-left">
+                        <textarea class="space-title-input" rows="1" oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px'; updateSpaceName(${space.id}, this.value)" placeholder="Name this space...">${space.name}</textarea>
+                        ${badgeHtml}
+                    </div>
+                    ${spaces.length > 1 ? `<button class="btn btn-danger" onclick="removeSpace(${space.id})">Remove</button>` : ''}
+                </div>
+                <div class="input-grid">
+                    <div class="input-group" style="flex: 2; min-width: 260px;">
+                        <label>Occupancy Type &amp; Subcategory (IBC Table 2902.1 &amp; 1004.5)</label>
+                        <select onchange="updateSpaceType(${space.id}, this.value)">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    ${inputsHtml}
+                </div>
+                ${statsHtml}
+            `;
+            container.appendChild(div);
+            
+            const titleInput = div.querySelector('.space-title-input');
+            if (titleInput) {
+                titleInput.style.height = 'auto';
+                titleInput.style.height = titleInput.scrollHeight + 'px';
+            }
+            
+            updateSpaceCalculations(space);
+        });
+        
+        container.style.minHeight = '';
+        calculateTotals();
+    }
+
+    function addSpace() {
+        spaces.push({ 
+            id: Date.now(), name: 'Occupied Space ' + (spaces.length + 1), type: 'B', area: 1500, factor: 150, seats: 0, units: 0 
+        });
+        renderSpaces();
+        updateURLHashSilently();
+        
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.space-card');
+            if (cards.length > 0) {
+                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 50);
+    }
+
+    function removeSpace(id) {
+        spaces = spaces.filter(s => s.id !== id);
+        renderSpaces();
+        updateURLHashSilently();
+    }
+    
+    function updateSpaceName(id, val) {
+        const space = spaces.find(s => s.id === id);
+        if (space) {
+            space.name = val;
+            updateURLHashSilently();
+            calculateTotals();
+        }
+    }
+
+    function updateSpaceType(id, newType) {
+        const space = spaces.find(s => s.id === id);
+        if (!space) return;
+        
+        space.type = newType;
+        const logic = occupancyData[newType];
+        
+        if (logic.calcType === 'area') { space.factor = logic.defaultFactor; }
+        
+        renderSpaces();
+        updateURLHashSilently();
+    }
+
+    function updateSpaceField(id, field, val) {
+        const space = spaces.find(s => s.id === id);
+        if (!space) return;
+        space[field] = val;
+        
+        updateSpaceCalculations(space);
+        calculateTotals();
+        updateURLHashSilently();
+    }
+
+    function updateSpaceCalculations(space) {
+        const logic = occupancyData[space.type];
+        
+        if (logic.calcType === 'area' || logic.calcType === 'seats') {
+            let totalOcc = 0;
+            if(logic.calcType === 'area') {
+                const area = parseFloat(space.area) || 0;
+                const factor = parseFloat(space.factor) || 150;
+                totalOcc = Math.ceil(area / factor);
+            } else {
+                const seats = parseFloat(space.seats) || 0;
+                totalOcc = Math.ceil(seats);
+            }
+
+            const el = document.getElementById('row-total-'+space.id);
+            if (el) el.innerText = totalOcc;
+
+        } else if (logic.calcType === 'units') {
+            const units = parseFloat(space.units) || 0;
+            const el = document.getElementById('row-uwc-'+space.id);
+            if (el) el.innerText = units;
+        }
+    }
+
+    function calculateTotals() {
+        let gtTotal = 0, gtMale = 0, gtFemale = 0;
+        let gtmWC = 0, gtfWC = 0, gtmLav = 0, gtfLav = 0, gtDF = 0;
+        let gtmUrMaxRaw = 0;
+        let gtuWC = 0, gtuLav = 0, gtuTub = 0;
+        
+        let sumStrings = {
+            mWC: [], fWC: [], mLav: [], fLav: [], df: [], uWC: [], uLav: []
+        };
+        
+        const buckets = {};
+        const rootColorMap = getRootColorMap();
+
+        spaces.forEach((space) => {
+            const logic = occupancyData[space.type] || occupancyData['B'];
+            const rId = logic.rootId;
+            
+            if (!buckets[rId]) {
+                buckets[rId] = {
+                    rootId: rId,
+                    rootLabel: logic.rootLabel,
+                    calcType: logic.calcType,
+                    logic: logic,
+                    totalOcc: 0,
+                    units: 0,
+                    spaceNames: [],
+                    spaceOccs: []
+                };
+            }
+
+            if (logic.calcType === 'area' || logic.calcType === 'seats') {
+                let occ = 0;
+                if(logic.calcType === 'area') {
+                    const area = parseFloat(space.area) || 0;
+                    const factor = parseFloat(space.factor) || 150;
+                    occ = Math.ceil(area / factor);
+                } else {
+                    const seats = parseFloat(space.seats) || 0;
+                    occ = Math.ceil(seats);
+                }
+                buckets[rId].totalOcc += occ;
+                buckets[rId].spaceNames.push(space.name);
+                buckets[rId].spaceOccs.push(occ);
+            } else if (logic.calcType === 'units') {
+                const units = parseFloat(space.units) || 0;
+                buckets[rId].units += units;
+                buckets[rId].spaceNames.push(space.name);
+                buckets[rId].spaceOccs.push(units);
+            }
+        });
+
+        let mathBreakdownHtml = '';
+        let legendHtml = `<div class="legend-container">`;
+
+        const sortedBuckets = Object.values(buckets).sort((a, b) => a.rootLabel.localeCompare(b.rootLabel));
+
+        sortedBuckets.forEach(bucket => {
+             const color = rootColorMap[bucket.rootId];
+             legendHtml += `<div class="legend-item"><span class="legend-swatch" style="background-color:${color};"></span> ${bucket.rootLabel}</div>`;
+        });
+        legendHtml += `</div>`;
+        
+        const badge = (val, color, title) => `<span style="background-color: ${color}; padding: 1px 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; -webkit-print-color-adjust: exact; print-color-adjust: exact;" title="${title}"><strong>${val}</strong></span>`;
+        const applyBadgeToMath = (htmlStr, color) => htmlStr.replace(/<strong>([\d.]+)<\/strong>/g, badge('$1', color, ''));
+
+        sortedBuckets.forEach(bucket => {
+            const bColor = rootColorMap[bucket.rootId];
+            
+            if (bucket.calcType === 'area' || bucket.calcType === 'seats') {
+                const maleOcc = splitMode === 'ceil' ? Math.ceil(bucket.totalOcc / 2) : (bucket.totalOcc / 2);
+                const femaleOcc = splitMode === 'ceil' ? Math.ceil(bucket.totalOcc / 2) : (bucket.totalOcc / 2);
+
+                gtTotal += bucket.totalOcc;
+                gtMale += maleOcc;
+                gtFemale += femaleOcc;
+
+                const b_mWC = bucket.logic.mWC(maleOcc);
+                const b_fWC = bucket.logic.fWC(femaleOcc);
+                const b_mLav = bucket.logic.mLav(maleOcc);
+                const b_fLav = bucket.logic.fLav(femaleOcc);
+                const b_df = bucket.logic.df(bucket.totalOcc);
+                const subRate = bucket.logic.urinalSubRate || 0.50;
+
+                gtmWC += b_mWC;
+                gtfWC += b_fWC;
+                gtmLav += b_mLav;
+                gtfLav += b_fLav;
+                gtDF += b_df;
+                gtmUrMaxRaw += (b_mWC * subRate);
+                
+                if(b_mWC > 0) sumStrings.mWC.push(badge(b_mWC.toFixed(2), bColor, bucket.rootLabel));
+                if(b_fWC > 0) sumStrings.fWC.push(badge(b_fWC.toFixed(2), bColor, bucket.rootLabel));
+                if(b_mLav > 0) sumStrings.mLav.push(badge(b_mLav.toFixed(2), bColor, bucket.rootLabel));
+                if(b_fLav > 0) sumStrings.fLav.push(badge(b_fLav.toFixed(2), bColor, bucket.rootLabel));
+                if(b_df > 0) sumStrings.df.push(badge(b_df.toFixed(2), bColor, bucket.rootLabel));
+
+                const additionLabels = bucket.spaceOccs.map((occ, i) => `${occ} <span style="font-size:0.85em; opacity:0.75;">(${bucket.spaceNames[i]})</span>`).join(' + ');
+                const spaceAdditions = bucket.spaceOccs.length > 1 ? `<br><span style="padding-left: 1rem;">= ${additionLabels}</span>` : '';
+                const fmtM = Number.isInteger(maleOcc) ? maleOcc : maleOcc.toFixed(1);
+                const fmtF = Number.isInteger(femaleOcc) ? femaleOcc : femaleOcc.toFixed(1);
+                
+                mathBreakdownHtml += `
+                    <div class="breakdown-group">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">
+                            <span class="legend-swatch" style="background-color:${bColor}; display:inline-block; margin-right:4px; vertical-align:middle;"></span>
+                            ${bucket.rootLabel} (Max Urinal Substitution: ${Math.round(subRate*100)}%)
+                        </h4>
+                        <p class="highlight-math">Aggregated Base Load: <strong>${bucket.totalOcc} Occupants</strong> ${spaceAdditions}</p>
+                        <p class="highlight-math" style="margin-top: 0.25rem;">➔ 50/50 Split (IBC 2902.1.1): <strong>${fmtM} Male</strong> &amp; <strong>${fmtF} Female</strong></p>
+                        ${applyBadgeToMath(bucket.logic.mathMWC(maleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathFWC(femaleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathMLav(maleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathFLav(femaleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathDF(bucket.totalOcc), bColor)}
+                    </div>
+                `;
+            } else if (bucket.calcType === 'units') {
+                gtuWC += bucket.units;
+                gtuLav += bucket.units;
+                const tubCount = bucket.rootId === 'I-3-Cells' ? Math.ceil(bucket.units / 15) : bucket.units;
+                gtuTub += tubCount;
+                
+                if(bucket.units > 0) {
+                    sumStrings.uWC.push(badge(bucket.units, bColor, bucket.rootLabel));
+                    sumStrings.uLav.push(badge(bucket.units, bColor, bucket.rootLabel));
+                }
+
+                const additionLabels = bucket.spaceOccs.map((occ, i) => `${occ} <span style="font-size:0.85em; opacity:0.75;">(${bucket.spaceNames[i]})</span>`).join(' + ');
+                const spaceAdditions = bucket.spaceOccs.length > 1 ? `<br><span style="padding-left: 1rem;">= ${additionLabels}</span>` : '';
+
+                mathBreakdownHtml += `
+                    <div class="breakdown-group">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">
+                            <span class="legend-swatch" style="background-color:${bColor}; display:inline-block; margin-right:4px; vertical-align:middle;"></span>
+                            ${bucket.rootLabel}
+                        </h4>
+                        <p class="highlight-math">Aggregated Units/Cells: <strong>${bucket.units} Units</strong> ${spaceAdditions}</p>
+                        <p>Private/Unit Water Closets: ${badge(bucket.units, bColor, '')}</p>
+                        <p>Private/Unit Lavatories: ${badge(bucket.units, bColor, '')}</p>
+                        <p>Bathtubs / Showers: ${badge(tubCount, bColor, '')}</p>
+                    </div>
+                `;
+            }
+        });
+
+        const totalMaleWC = Math.ceil(gtmWC);
+        const totalFemaleWC = Math.ceil(gtfWC);
+        const maxUrinalSub = Math.floor(gtmUrMaxRaw);
+        const netMaleWC = Math.max(0, totalMaleWC - maxUrinalSub);
+
+        const fmtGtMale = Number.isInteger(gtMale) ? gtMale : gtMale.toFixed(1);
+        const fmtGtFemale = Number.isInteger(gtFemale) ? gtFemale : gtFemale.toFixed(1);
+        const fmtGtDesign = Number.isInteger(gtMale + gtFemale) ? (gtMale + gtFemale) : (gtMale + gtFemale).toFixed(1);
+
+        document.getElementById('gt-total').innerText = gtTotal;
+        document.getElementById('gt-male').innerText = fmtGtMale;
+        document.getElementById('gt-female').innerText = fmtGtFemale;
+        document.getElementById('gt-design-total').innerText = fmtGtDesign;
+        
+        document.getElementById('gt-m-wc').innerText = totalMaleWC;
+        document.getElementById('gt-m-ur-sub').innerText = maxUrinalSub;
+        document.getElementById('gt-m-wc-net').innerText = netMaleWC;
+        document.getElementById('gt-f-wc').innerText = totalFemaleWC;
+        document.getElementById('gt-m-lav').innerText = Math.ceil(gtmLav);
+        document.getElementById('gt-f-lav').innerText = Math.ceil(gtfLav);
+        document.getElementById('gt-u-wc').innerText = gtuWC;
+        document.getElementById('gt-u-lav').innerText = gtuLav;
+        document.getElementById('gt-u-tub').innerText = gtuTub;
+        document.getElementById('gt-ag-wc').innerText = totalMaleWC + totalFemaleWC;
+        document.getElementById('gt-ag-lav').innerText = Math.ceil(gtmLav) + Math.ceil(gtfLav);
+        document.getElementById('gt-df').innerText = Math.ceil(gtDF);
+        
+        const gtMathContainer = document.getElementById('gt-math-container');
+        if (spaces.length > 0) {
+            gtMathContainer.innerHTML = mathBreakdownHtml + `
+                <div class="breakdown-final">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">Final Project Aggregation (IBC 2902.1 / IPC 403.1)</h4>
+                    <p><strong>Total Male Water Closets (Before Substitution):</strong> ${sumStrings.mWC.length > 0 ? sumStrings.mWC.join(' + ') + ' = ' : ''}${gtmWC.toFixed(2)} ➔ <strong>${totalMaleWC}</strong></p>
+                    <p><strong>Allowable Male Urinal Substitution (IPC 424.2):</strong> Max <strong>${maxUrinalSub} Urinal(s)</strong> + <strong>${netMaleWC} Male WC(s)</strong> = ${totalMaleWC} Total Male WC/Urinal Fixtures</p>
+                    <p><strong>Total Female Water Closets:</strong> ${sumStrings.fWC.length > 0 ? sumStrings.fWC.join(' + ') + ' = ' : ''}${gtfWC.toFixed(2)} ➔ <strong>${totalFemaleWC}</strong></p>
+                    <p><strong>Total Male Lavatories:</strong> ${sumStrings.mLav.length > 0 ? sumStrings.mLav.join(' + ') + ' = ' : ''}${gtmLav.toFixed(2)} ➔ <strong>${Math.ceil(gtmLav)}</strong></p>
+                    <p><strong>Total Female Lavatories:</strong> ${sumStrings.fLav.length > 0 ? sumStrings.fLav.join(' + ') + ' = ' : ''}${gtfLav.toFixed(2)} ➔ <strong>${Math.ceil(gtfLav)}</strong></p>
+                    <p><strong>Total Drinking Fountains:</strong> ${sumStrings.df.length > 0 ? sumStrings.df.join(' + ') + ' = ' : ''}${gtDF.toFixed(2)} ➔ <strong>${Math.ceil(gtDF)}</strong></p>
+                </div>
+                ${legendHtml}
+            `;
+        } else {
+            gtMathContainer.innerHTML = '<p>No occupancies to calculate.</p>';
+        }
+    }
+
+    // Initialize UI
+    document.getElementById('split-mode-select').value = splitMode;
+    selectJurisdiction(selectedStateCode, true);
+    renderSpaces();
+</script>
+
+</body>
+</html>
