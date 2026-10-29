@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arizona IBC/IPC Comprehensive Plumbing Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f5;
+            --card-bg: #ffffff;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --border-color: #e4e4e7;
+            --accent: #c2410c; /* Copper/Arizona theme accent */
+            --accent-hover: #9a3412;
+            --danger: #ef4444;
+            --success: #10b981;
+            --info-bg: #fff7ed;
+            --info-text: #7c2d12;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.4;
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: var(--card-bg);
+            max-width: 920px;
+            width: 100%;
+            padding: 1.5rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-actions {
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-titles h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 0.2rem;
+        }
+        .header-titles .subtitle {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .util-buttons {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-outline:hover { background-color: var(--info-bg); }
+        .btn-danger { background-color: #fee2e2; color: #b91c1c; padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+        .btn-danger:hover { background-color: #fca5a5; }
+        
+        .space-card {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #fafafa;
+            transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+            position: relative;
+        }
+        .space-card.dragging { opacity: 0.4; transform: scale(0.98); }
+        .space-card.drag-over { border: 2px dashed var(--accent); background-color: var(--info-bg); }
+        .space-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .space-header-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 0.4rem;
+        }
+        .space-title-input {
+            font-size: 1rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; background: transparent; padding: 0.2rem 0.4rem; border-radius: 3px; width: 100%; max-width: 50%; min-width: 120px; transition: all 0.2s; font-family: inherit;
+            resize: none; overflow: hidden; line-height: 1.3; white-space: pre-wrap; word-wrap: break-word; word-break: break-word;
+        }
+        .space-title-input:hover { border-color: var(--border-color); background: white; }
+        .space-title-input:focus { border-color: var(--accent); background: white; outline: none; box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15); }
+        
+        .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 999px; background-color: #ffedd5; color: #9a3412; font-weight: 500; white-space: nowrap; }
+        .badge.seats { background-color: #dbeafe; color: #1e40af; }
+        .badge.units { background-color: #d1fae5; color: #065f46; }
+
+        .input-grid { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+        label { font-weight: 500; font-size: 0.75rem; margin-bottom: 0.25rem; color: var(--text-main); }
+        input[type="number"], select { padding: 0.35rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; outline: none; transition: border-color 0.2s; font-family: inherit; width: 100%; box-sizing: border-box; }
+        input[type="number"] { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15); }
+        
+        .table-wrapper {
+            display: inline-block;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 1rem;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .calc-table {
+            border-collapse: collapse;
+            width: max-content;
+            background-color: #ffffff;
+            font-size: 0.8rem;
+        }
+        .calc-table th, .calc-table td {
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.6rem;
+            text-align: center;
+        }
+        .calc-table th { font-weight: normal; text-align: left; }
+        .calc-table tr:first-child th, .calc-table tr:first-child td { border-top: none; }
+        .calc-table tr:last-child th, .calc-table tr:last-child td { border-bottom: none; }
+        .calc-table tr th:first-child, .calc-table tr td:first-child { border-left: none; }
+        .calc-table tr th:last-child, .calc-table tr td:last-child { border-right: none; }
+        
+        .calc-table .table-header-title { 
+            color: var(--text-main); 
+            text-decoration: underline; 
+            text-underline-offset: 2px;
+            margin-right: 0.5rem;
+        }
+        .calc-table .fixture-header { 
+            background-color: #fafafa; 
+            color: var(--text-main); 
+            text-decoration: underline; 
+            text-underline-offset: 2px;
+            text-align: center;
+        }
+        .calc-table .table-header-value, .calc-table .fixture-value { 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 600;
+            color: var(--text-main);
+            background: #e4e4e7;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            display: inline-block;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .math-breakdown, .amendments-footnote { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color); font-size: 0.75rem; color: var(--text-muted); }
+        .math-breakdown summary, .amendments-footnote summary { cursor: pointer; font-weight: 600; color: var(--accent); outline: none; user-select: none; font-size: 0.85rem; }
+        .math-breakdown div { margin-top: 0.5rem; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; background: #f1f5f9; padding: 0.75rem; border-radius: 4px; }
+        .math-breakdown div p { margin: 0 0 0.4rem 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2rem; }
+        .math-breakdown div p:last-child { margin: 0; border-bottom: none; padding-bottom: 0; }
+        .math-breakdown .highlight-math { color: var(--text-main); font-weight: 600; }
+
+        .amendments-footnote {
+            margin-top: 1.25rem;
+            background-color: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.85rem 1rem;
+        }
+        .amendments-content {
+            margin-top: 0.75rem;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .amendments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .amendment-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.65rem 0.8rem;
+        }
+        .amendment-card h4 {
+            margin: 0 0 0.35rem 0;
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+        .amendment-card ul {
+            margin: 0;
+            padding-left: 1.1rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        .amendment-card li {
+            margin-bottom: 0.25rem;
+        }
+        .amendment-card li:last-child {
+            margin-bottom: 0;
+        }
+
+        .results-panel { background-color: #f8fafc; border: 2px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-top: 1.5rem; }
+        .results-header { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+        .info-box { font-size: 0.75rem; color: var(--info-text); background-color: var(--info-bg); padding: 0.5rem 0.75rem; border-radius: 4px; border-left: 3px solid var(--accent); margin-bottom: 0.75rem; line-height: 1.4; }
+        
+        .occupant-stats { display: flex; gap: 1.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+        .stat-box { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); cursor: help; border-bottom: 1px dotted #ccc; padding-bottom: 2px;}
+        .stat-value { font-size: 1.25rem; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text-main); }
+        .stat-box.divider { border-left: 2px solid var(--border-color); padding-left: 1.5rem; }
+        
+        .fixtures-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 1.5rem; 
+            margin-bottom: 1rem; 
+            max-width: 900px;
+        }
+        .fixture-category h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-top: 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; }
+        .result-row:last-child { border-bottom: none; }
+        .sub-note { font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: -2px; }
+        
+        .results-panel .result-row .value { 
+            font-weight: 700; 
+            font-size: 1.3rem; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+            color: var(--accent); 
+        }
+        .results-panel .result-row .value.sub-val {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+        
+        .common-fixtures { padding-top: 1rem; margin-top: 0.5rem; border-top: 1px solid var(--border-color); }
+        
+        .legend-container { display: flex; flex-wrap: wrap; column-gap: 12px; row-gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.8rem; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
+        .add-btn-container { text-align: center; margin-top: 1rem; }
+        
+        .print-btn-bottom {
+            display: block; width: 100%; margin-top: 1rem; padding: 0.75rem; background-color: #1e293b; color: white; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;
+        }
+        .print-btn-bottom:hover { opacity: 0.9; }
+
+        @media print {
+            @page { size: letter portrait; margin: 0.4in; }
+            body { background-color: #ffffff; padding: 0; font-size: 9pt; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; border: none; }
+            
+            .util-buttons, .add-btn-container, .btn-danger, .print-btn-bottom { display: none !important; }
+            #spaces-container { display: block; width: 100%; }
+            
+            .space-card { 
+                background-color: transparent; 
+                border: 1px solid var(--border-color); 
+                page-break-inside: avoid; 
+                break-inside: avoid; 
+                margin-bottom: 0.15in; 
+                padding: 0.15in; 
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .results-panel, .amendments-footnote { 
+                background-color: transparent; 
+                border: 2px solid var(--border-color); 
+                page-break-inside: avoid; 
+                break-inside: avoid; 
+                padding: 0.15in; 
+                margin-top: 0.15in;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .results-header { margin-top: 0 !important; margin-bottom: 0.25rem !important; }
+            
+            input[type="number"], select, .space-title-input {
+                border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important;
+                appearance: none; -webkit-appearance: none; box-shadow: none !important; color: var(--text-main); font-size: 9pt;
+            }
+            .space-title-input { font-size: 10.5pt; font-weight: bold; }
+            select { padding-right: 0; }
+            .input-group label { font-size: 7.5pt; margin-bottom: 0; }
+            .input-grid { gap: 0.5rem; margin-bottom: 0; }
+            .space-header { margin-bottom: 0.25rem; }
+            
+            details summary { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
+            .math-breakdown { 
+                margin-top: 0.25rem !important; 
+                padding-top: 0.25rem !important; 
+                border-top: 1px dashed var(--border-color) !important; 
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            details > div { 
+                display: block !important; 
+                border-top: none; 
+                padding: 0 !important; 
+                margin-top: 0 !important; 
+                margin-bottom: 0 !important;
+                background: transparent !important; 
+                font-size: 8pt; 
+                line-height: 1.25;
+            }
+            .math-breakdown div p { margin: 0 0 0.15rem 0 !important; padding-bottom: 0.15rem !important; border-bottom: 1px solid #f1f5f9 !important; }
+            .math-breakdown div p:last-of-type { margin: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
+            
+            .legend-container { 
+                margin-top: 0.25rem !important; 
+                padding-top: 0.25rem !important; 
+                row-gap: 2px !important; 
+                column-gap: 8px !important; 
+                margin-bottom: 0 !important; 
+                border-top: 1px dashed var(--border-color) !important; 
+            }
+            
+            .table-wrapper { border: 1px solid var(--border-color); overflow-x: visible; margin-top: 0.25rem; width: auto; display: inline-block; }
+            .calc-table { border: none; min-width: auto; width: max-content; font-size: 8.5pt; margin-top: 0; }
+            .calc-table th, .calc-table td { border: 1px solid var(--border-color); padding: 0.15rem 0.3rem; }
+            .calc-table .table-header-title { font-weight: bold; text-decoration: none; }
+            .calc-table .fixture-header { text-decoration: none; font-weight: bold; background: transparent; }
+            
+            .info-box { border: 1px solid var(--border-color); background-color: transparent; color: var(--text-main); font-size: 8pt; padding: 0.25rem 0.5rem; margin-bottom: 0.5rem;}
+            .results-panel .result-row .value { color: var(--accent); font-size: 12pt; }
+            .stat-value { color: var(--text-main); font-size: 14pt; }
+            .occupant-stats { gap: 1rem; margin-bottom: 0.5rem; padding-bottom: 0.5rem; }
+            .fixtures-grid { gap: 1rem; margin-bottom: 0.5rem; max-width: 100%; }
+            .fixture-category h3 { font-size: 8.5pt; margin-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); padding-bottom: 0; }
+            .result-row { padding: 0.25rem 0; font-size: 8.5pt; }
+            .common-fixtures { padding-top: 0.5rem; margin-bottom: 0.5rem; }
+            
+            a[href]:after { content: none !important; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 0.5rem; }
+            .container { padding: 1rem; }
+            .header-actions { flex-direction: column; gap: 0.75rem; }
+            .input-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+            .fixtures-grid { grid-template-columns: 1fr; max-width: 100%; }
+            .input-group { min-width: 100%; }
+            .space-title-input { max-width: 100%; }
+            .space-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .occupant-stats { gap: 0.75rem; }
+            .stat-box.divider { border-left: none !important; padding-left: 0 !important; width: 100%; border-top: 1px solid var(--border-color); padding-top: 0.75rem;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-actions">
+        <div class="header-titles">
+            <h1>Arizona Project Plumbing Fixture Calculator</h1>
+            <div class="subtitle">IBC Table 2902.1 / IPC Table 403.1 &amp; IBC Table 1004.5 (2018 / 2021 / 2024 ICC Baseline)</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; font-style: italic;">Adapted for Arizona Municipalities (Phoenix, Scottsdale, Tucson, Tempe, Mesa)</div>
+        </div>
+        <div class="util-buttons">
+            <button class="btn btn-outline" onclick="printReport()">Print / Save PDF</button>
+            <button class="btn btn-outline" id="share-btn" onclick="generateShareLink()">Copy Link</button>
+            <button class="btn btn-outline" onclick="exportData()">Export JSON</button>
+            <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">Import JSON</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+        </div>
+    </div>
+
+    <div id="spaces-container"></div>
+    
+    <div class="add-btn-container">
+        <button class="btn" onclick="addSpace()" style="width: 100%; padding: 0.75rem; border: 2px dashed var(--accent); background: var(--info-bg); color: var(--accent); font-weight: 600;">+ Add Occupancy Space</button>
+    </div>
+
+    <div class="results-panel">
+        <div class="results-header">
+            <span>Project Grand Totals (IBC 2902.1 / IPC 403.1)</span>
+            <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-muted); background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 3px;">Fractions Summed &amp; Rounded Up</span>
+        </div>
+        
+        <div class="info-box">
+            <strong>Distribution of the Sexes (IBC 2902.1.1 / IPC 403.1.1):</strong> The total occupant load is divided equally (50% Male / 50% Female) unless statistical data is approved by the local AHJ showing a different distribution. Fractional occupant splits round UP to the next whole person per occupancy group.
+        </div>
+        
+        <div class="info-box" style="background-color: #f0fdf4; border-left-color: var(--success); color: #14532d;">
+            <strong>Urinal Substitution Rule (IPC Section 424.2):</strong> Unlike the UPC, the IBC/IPC does not mandate a separate urinal column. Instead, urinals may be <strong>substituted</strong> for required Male Water Closets: up to <strong>67%</strong> in Group A (Assembly) and Group E (Educational) occupancies, and up to <strong>50%</strong> in all other occupancies.
+        </div>
+        
+        <div class="occupant-stats">
+            <div class="stat-box">
+                <span class="stat-label" title="Raw sum of all area-based and fixed-seating occupants before 50/50 splits.">Base Occupants</span>
+                <span class="stat-value" id="gt-total">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label" title="50% split rounded UP per occupancy bucket.">Design Male</span>
+                <span class="stat-value" id="gt-male">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label" title="50% split rounded UP per occupancy bucket.">Design Female</span>
+                <span class="stat-value" id="gt-female">0</span>
+            </div>
+            <div class="stat-box divider">
+                <span class="stat-label" title="Total design load used for plumbing math (Male + Female).">Plumbing Design Load</span>
+                <span class="stat-value" id="gt-design-total">0</span>
+            </div>
+        </div>
+
+        <div class="fixtures-grid">
+            <div class="fixture-category">
+                <h3>Male Fixtures</h3>
+                <div class="result-row">
+                    <span>Total Water Closets<span class="sub-note">Before urinal substitution</span></span>
+                    <span class="value" id="gt-m-wc">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Max Urinal Sub.<span class="sub-note">Per IPC 424.2 (67% A/E, 50% other)</span></span>
+                    <span class="value sub-val" id="gt-m-ur-sub">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Net WCs if Max Urinals<span class="sub-note">Remaining Male WCs required</span></span>
+                    <span class="value sub-val" id="gt-m-wc-net">0</span>
+                </div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-m-lav">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3>Female Fixtures</h3>
+                <div class="result-row"><span>Water Closets</span><span class="value" id="gt-f-wc">0</span></div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-f-lav">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3>Private / Dwelling Units</h3>
+                <div class="result-row"><span>Water Closets</span><span class="value" id="gt-u-wc">0</span></div>
+                <div class="result-row"><span>Lavatories</span><span class="value" id="gt-u-lav">0</span></div>
+                <div class="result-row"><span>Bathtubs / Showers</span><span class="value" id="gt-u-tub">0</span></div>
+            </div>
+            <div class="fixture-category">
+                <h3 title="Single-occupant / All-Gender total per IBC 2902.1.2" style="cursor:help; border-bottom: 1px dotted var(--border-color);">Combined (M + F Total)</h3>
+                <div class="result-row"><span>Water Closets (M+F)</span><span class="value" id="gt-ag-wc">0</span></div>
+                <div class="result-row"><span>Lavatories (M+F)</span><span class="value" id="gt-ag-lav">0</span></div>
+            </div>
+            <div class="fixture-category common-fixtures">
+                <h3>Common Fixtures</h3>
+                <div class="result-row"><span>Drinking Fountains</span><span class="value" id="gt-df">0</span></div>
+                <div class="result-row"><span>Service Sink</span><span class="value" id="gt-ss">1</span></div>
+            </div>
+        </div>
+
+        <details class="math-breakdown">
+            <summary>View Grand Total Math Breakdown (IBC Table 2902.1 / IPC Table 403.1)</summary>
+            <div id="gt-math-container"></div>
+        </details>
+        
+        <button class="print-btn-bottom" onclick="printReport()">🖨️ Print / Save PDF Report</button>
+    </div>
+
+    <!-- Collapsible Local Amendments Footnote for Arizona -->
+    <details class="amendments-footnote">
+        <summary>📌 Arizona Local Amendments &amp; AHJ Code Footnotes (Click to Expand)</summary>
+        <div class="amendments-content">
+            <p style="margin-top: 0;"><strong>Statewide Code Structure:</strong> Arizona is a home-rule state with <strong>no statewide mandatory building code</strong>. Almost all Arizona municipalities adopt the <strong>International Building Code (IBC)</strong> and <strong>International Plumbing Code (IPC)</strong> (2018, 2021, or 2024 editions) for minimum fixture counts, with local administrative and technical amendments:</p>
+            
+            <div class="amendments-grid">
+                <div class="amendment-card">
+                    <h4>City of Phoenix (2024 IBC / IPC)</h4>
+                    <ul>
+                        <li><strong>Group B Separate Facilities Threshold (IBC 2902.2 / IPC 403.2 Exception 3):</strong> Phoenix amends the single-user restroom exception for Business (Group B) occupancies to allow a single unisex restroom where total occupant load is <strong>50 or fewer</strong> (raised from the base IBC/IPC limit of 25).</li>
+                        <li><strong>Drinking Fountains (IBC 2902.5 / IPC 410.2):</strong> Not required for occupancies with an occupant load of <strong>30 or fewer</strong>, or in restaurants where water is served free of charge. Bottle-filling stations may substitute for up to 50% of required fountains.</li>
+                        <li><strong>Outdoor Patio Dining:</strong> Unenclosed outdoor dining areas generally must be included in plumbing fixture calculations unless exempted by specific local policy for small seasonal patios.</li>
+                    </ul>
+                </div>
+
+                <div class="amendment-card">
+                    <h4>City of Scottsdale (2021 IBC / IPC)</h4>
+                    <ul>
+                        <li><strong>Fixture Count Baseline:</strong> Uses unamended IBC Table 2902.1 / IPC Table 403.1 ratios.</li>
+                        <li><strong>Venting Restrictions (IPC Ch. 9 Amendment):</strong> Scottsdale strictly restricts Air Admittance Valves (AAVs / Studor vents); traditional atmospheric venting through the roof is required unless special approval is granted by the Building Official.</li>
+                        <li><strong>Water Efficiency:</strong> Strict desert conservation mandates apply to public lavatory faucets (0.5 gpm) and high-efficiency urinals/water closets.</li>
+                    </ul>
+                </div>
+
+                <div class="amendment-card">
+                    <h4>City of Tucson &amp; Pima County (2018 / 2024 IBC &amp; IPC)</h4>
+                    <ul>
+                        <li><strong>Fixture Count Baseline:</strong> Follows standard IBC Table 2902.1 / IPC Table 403.1 minimum ratios.</li>
+                        <li><strong>Commercial Rainwater &amp; Graywater Conservation:</strong> Tucson enforces strict water harvesting and ultra-low-flow fixture mandates (1.28 gpf WCs, 0.125 gpf or waterless urinals in commercial applications).</li>
+                        <li><strong>Gender-Neutral / Single-Occupant Facilities:</strong> Permitted to count toward required Male or Female fixture totals in accordance with 2021/2024 IBC Section 2902.1.2.</li>
+                    </ul>
+                </div>
+
+                <div class="amendment-card">
+                    <h4>Tempe, Mesa, Chandler &amp; Gilbert (East Valley)</h4>
+                    <ul>
+                        <li><strong>IBC 2902.2 Separate Facilities:</strong> Separate facilities are not required in structures or tenant spaces with a total occupant load (including employees and customers) of <strong>15 or fewer</strong>, in Mercantile (Group M) up to <strong>100 occupants</strong>, and Business (Group B) up to <strong>25 occupants</strong> (or 50 if adopting 2024/Phoenix-aligned amendments).</li>
+                        <li><strong>Service Sinks (IBC 2902.3.3):</strong> A service sink is not required in Business (B) and Mercantile (M) tenant spaces with an occupant load of <strong>15 or fewer</strong> (or where central building janitorial facilities are provided).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </details>
+</div>
+
+<script>
+    // IBC 2902.1 / IPC 403.1 FRACTIONAL LOGIC ENGINE
+    // Two-tier stepped function (e.g., Group B WC: 1 per 25 for first 50, then 1 per 50 for remainder > 50)
+    function ibcTwoTier(val, tier1Limit, div1, div2) {
+        if (val <= 0) return 0;
+        if (val <= tier1Limit) {
+            return val / div1;
+        }
+        const tier1Fixtures = tier1Limit / div1;
+        return tier1Fixtures + (val - tier1Limit) / div2;
+    }
+
+    function getIbcTwoTierMath(val, tier1Limit, div1, div2, fixtureName) {
+        if (val <= 0) return `<p>${fixtureName}: 0.00</p>`;
+        if (val <= tier1Limit) {
+            const total = val / div1;
+            return `<p>${fixtureName}: ${val} occ × (1/${div1} for first ${tier1Limit}) = <strong>${total.toFixed(2)}</strong></p>`;
+        }
+        const tier1Fixtures = tier1Limit / div1;
+        const rem = val - tier1Limit;
+        const remFixtures = rem / div2;
+        const total = tier1Fixtures + remFixtures;
+        return `<p>${fixtureName}: First ${tier1Limit} occ = ${tier1Fixtures.toFixed(2)} (1/${div1}) + Remaining ${rem} occ × (1/${div2}) = ${remFixtures.toFixed(2)}, Total = <strong>${total.toFixed(2)}</strong></p>`;
+    }
+
+    function linear(val, divisor) {
+        if (val <= 0 || divisor <= 0) return 0;
+        return val / divisor;
+    }
+    
+    function getLinearMath(val, divisor, fixtureName) {
+        if (val <= 0 || divisor <= 0) return `<p>${fixtureName}: 0.00</p>`;
+        return `<p>${fixtureName}: ${val} occ × 1/${divisor} = <strong>${(val/divisor).toFixed(2)}</strong></p>`;
+    }
+
+    // IBC Table 2902.1 / IPC Table 403.1 Occupancy Definitions
+    // urinalSubRate: 0.67 for Group A and E, 0.50 for all others per IPC 424.2
+    const occupancyData = {
+        'A-1': {
+            rootId: 'A-1', rootLabel: 'Group A-1 Assembly (Theaters)', label: 'A-1 Assembly (Theaters, concert halls - fixed seating)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 125), mathMWC: (m) => getLinearMath(m, 125, 'WC (M)'),
+            fWC: (f) => linear(f, 65), mathFWC: (f) => getLinearMath(f, 65, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-2-Rest': {
+            rootId: 'A-2-Rest', rootLabel: 'Group A-2 (Restaurants / Banquet)', label: 'A-2 Restaurants, Banquet Halls, Food Courts (Unconcentrated)', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 75), mathMWC: (m) => getLinearMath(m, 75, 'WC (M)'),
+            fWC: (f) => linear(f, 75), mathFWC: (f) => getLinearMath(f, 75, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-2-Bar': {
+            rootId: 'A-2-Bar', rootLabel: 'Group A-2 (Nightclubs / Bars / Casinos)', label: 'A-2 Nightclubs, Bars, Taverns, Dance Halls, Casinos', calcType: 'area', defaultFactor: 15, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 40), mathMWC: (m) => getLinearMath(m, 40, 'WC (M)'),
+            fWC: (f) => linear(f, 40), mathFWC: (f) => getLinearMath(f, 40, 'WC (F)'),
+            mLav: (m) => linear(m, 75), mathMLav: (m) => getLinearMath(m, 75, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 75), mathFLav: (f) => getLinearMath(f, 75, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-3': {
+            rootId: 'A-3', rootLabel: 'Group A-3 Assembly (General / Worship)', label: 'A-3 Auditoriums, Houses of Worship, Libraries, Arcades, Galleries', calcType: 'area', defaultFactor: 30, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 125), mathMWC: (m) => getLinearMath(m, 125, 'WC (M)'),
+            fWC: (f) => linear(f, 65), mathFWC: (f) => getLinearMath(f, 65, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-3-Seats': {
+            rootId: 'A-3', rootLabel: 'Group A-3 Assembly (General / Worship)', label: 'A-3 Assembly (Fixed Seating Override)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 125), mathMWC: (m) => getLinearMath(m, 125, 'WC (M)'),
+            fWC: (f) => linear(f, 65), mathFWC: (f) => getLinearMath(f, 65, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 200), mathFLav: (f) => getLinearMath(f, 200, 'Lavatory (F)'),
+            df: (t) => linear(t, 500), mathDF: (t) => getLinearMath(t, 500, 'Drinking Fountains')
+        },
+        'A-4': {
+            rootId: 'A-4', rootLabel: 'Group A-4 Assembly (Indoor Arenas)', label: 'A-4 Indoor Sporting Events / Arenas (Spectator Seating)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => ibcTwoTier(m, 1500, 75, 120), mathMWC: (m) => getIbcTwoTierMath(m, 1500, 75, 120, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 1520, 40, 60), mathFWC: (f) => getIbcTwoTierMath(f, 1520, 40, 60, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 150), mathFLav: (f) => getLinearMath(f, 150, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'A-5': {
+            rootId: 'A-5', rootLabel: 'Group A-5 Assembly (Stadiums)', label: 'A-5 Stadiums, Amusement Parks, Grandstands (Outdoor)', calcType: 'seats', urinalSubRate: 0.67,
+            mWC: (m) => ibcTwoTier(m, 1500, 75, 120), mathMWC: (m) => getIbcTwoTierMath(m, 1500, 75, 120, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 1520, 40, 60), mathFWC: (f) => getIbcTwoTierMath(f, 1520, 40, 60, 'WC (F)'),
+            mLav: (m) => linear(m, 200), mathMLav: (m) => getLinearMath(m, 200, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 150), mathFLav: (f) => getLinearMath(f, 150, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'B': {
+            rootId: 'B', rootLabel: 'Group B Business', label: 'B Business (Office, Professional, Civic, Outpatient)', calcType: 'area', defaultFactor: 150, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => ibcTwoTier(m, 80, 40, 80), mathMLav: (m) => getIbcTwoTierMath(m, 80, 40, 80, 'Lavatory (M)'),
+            fLav: (f) => ibcTwoTier(f, 80, 40, 80), mathFLav: (f) => getIbcTwoTierMath(f, 80, 40, 80, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'E': {
+            rootId: 'E', rootLabel: 'Group E Educational', label: 'E Educational (Schools & Academics)', calcType: 'area', defaultFactor: 20, urinalSubRate: 0.67,
+            mWC: (m) => linear(m, 50), mathMWC: (m) => getLinearMath(m, 50, 'WC (M)'),
+            fWC: (f) => linear(f, 50), mathFWC: (f) => getLinearMath(f, 50, 'WC (F)'),
+            mLav: (m) => linear(m, 50), mathMLav: (m) => getLinearMath(m, 50, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 50), mathFLav: (f) => getLinearMath(f, 50, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'F': {
+            rootId: 'F', rootLabel: 'Group F Factory / Industrial', label: 'F-1, F-2 Factory & Industrial', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 100), mathMWC: (m) => getLinearMath(m, 100, 'WC (M)'),
+            fWC: (f) => linear(f, 100), mathFWC: (f) => getLinearMath(f, 100, 'WC (F)'),
+            mLav: (m) => linear(m, 100), mathMLav: (m) => getLinearMath(m, 100, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 100), mathFLav: (f) => getLinearMath(f, 100, 'Lavatory (F)'),
+            df: (t) => linear(t, 400), mathDF: (t) => getLinearMath(t, 400, 'Drinking Fountains')
+        },
+        'I-1': {
+            rootId: 'I-1', rootLabel: 'Group I-1 Institutional', label: 'I-1 Custodial Care (Assisted Living / Group Homes)', calcType: 'area', defaultFactor: 200, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'I-2-Rooms': { rootId: 'I-2-Rooms', rootLabel: 'Group I-2 Hospital Patient Rooms', label: 'I-2 Medical / Nursing Care (Patient Sleeping Rooms)', calcType: 'units' },
+        'I-2-Employees': {
+            rootId: 'I-2-Employees', rootLabel: 'Group I-2 Hospital Employees/Visitors', label: 'I-2 Hospital Employees & Visitors (Non-Patient Areas)', calcType: 'area', defaultFactor: 100, urinalSubRate: 0.50,
+            mWC: (m) => ibcTwoTier(m, 50, 25, 50), mathMWC: (m) => getIbcTwoTierMath(m, 50, 25, 50, 'WC (M)'),
+            fWC: (f) => ibcTwoTier(f, 50, 25, 50), mathFWC: (f) => getIbcTwoTierMath(f, 50, 25, 50, 'WC (F)'),
+            mLav: (m) => linear(m, 35), mathMLav: (m) => getLinearMath(m, 35, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 35), mathFLav: (f) => getLinearMath(f, 35, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'I-3-Cells': { rootId: 'I-3-Cells', rootLabel: 'Group I-3 Prisons (Cells)', label: 'I-3 Prisons / Correctional Centers (Individual Cells)', calcType: 'units' },
+        'I-4': {
+            rootId: 'I-4', rootLabel: 'Group I-4 Adult/Child Daycare', label: 'I-4 Daycare Facilities (Care < 24 hrs)', calcType: 'area', defaultFactor: 35, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 15), mathMWC: (m) => getLinearMath(m, 15, 'WC (M)'),
+            fWC: (f) => linear(f, 15), mathFWC: (f) => getLinearMath(f, 15, 'WC (F)'),
+            mLav: (m) => linear(m, 15), mathMLav: (m) => getLinearMath(m, 15, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 15), mathFLav: (f) => getLinearMath(f, 15, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'M': {
+            rootId: 'M', rootLabel: 'Group M Mercantile', label: 'M Mercantile (Retail, Department Stores, Markets)', calcType: 'area', defaultFactor: 60, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 500), mathMWC: (m) => getLinearMath(m, 500, 'WC (M)'),
+            fWC: (f) => linear(f, 500), mathFWC: (f) => getLinearMath(f, 500, 'WC (F)'),
+            mLav: (m) => linear(m, 750), mathMLav: (m) => getLinearMath(m, 750, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 750), mathFLav: (f) => getLinearMath(f, 750, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        },
+        'R-1': { rootId: 'R-1', rootLabel: 'Group R-1 Hotels / Motels', label: 'R-1 Hotels, Motels, Boarding Houses (Sleeping Units)', calcType: 'units' },
+        'R-2-Dorm': {
+            rootId: 'R-2-Dorm', rootLabel: 'Group R-2 Dormitories', label: 'R-2 Dormitories, Fraternities, Sororities', calcType: 'area', defaultFactor: 50, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'R-2-Apt': { rootId: 'R-2-Apt', rootLabel: 'Group R-2 Apartment Dwelling Units', label: 'R-2 Apartment House / Multifamily Dwelling Units', calcType: 'units' },
+        'R-3-Dwelling': { rootId: 'R-3-Dwelling', rootLabel: 'Group R-3 Dwellings', label: 'R-3 One- and Two-Family Dwellings', calcType: 'units' },
+        'R-4': {
+            rootId: 'R-4', rootLabel: 'Group R-4 Congregate Living', label: 'R-4 Residential Care / Assisted Living (<= 16 occupants)', calcType: 'area', defaultFactor: 200, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 10), mathMWC: (m) => getLinearMath(m, 10, 'WC (M)'),
+            fWC: (f) => linear(f, 10), mathFWC: (f) => getLinearMath(f, 10, 'WC (F)'),
+            mLav: (m) => linear(m, 10), mathMLav: (m) => getLinearMath(m, 10, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 10), mathFLav: (f) => getLinearMath(f, 10, 'Lavatory (F)'),
+            df: (t) => linear(t, 100), mathDF: (t) => getLinearMath(t, 100, 'Drinking Fountains')
+        },
+        'S': {
+            rootId: 'S', rootLabel: 'Group S Storage / Warehouse', label: 'S-1, S-2 Storage (Warehouses, Freight Depots)', calcType: 'area', defaultFactor: 300, urinalSubRate: 0.50,
+            mWC: (m) => linear(m, 100), mathMWC: (m) => getLinearMath(m, 100, 'WC (M)'),
+            fWC: (f) => linear(f, 100), mathFWC: (f) => getLinearMath(f, 100, 'WC (F)'),
+            mLav: (m) => linear(m, 100), mathMLav: (m) => getLinearMath(m, 100, 'Lavatory (M)'),
+            fLav: (f) => linear(f, 100), mathFLav: (f) => getLinearMath(f, 100, 'Lavatory (F)'),
+            df: (t) => linear(t, 1000), mathDF: (t) => getLinearMath(t, 1000, 'Drinking Fountains')
+        }
+    };
+
+    const halftoneColors = [
+        '#ffedd5', // orange-100
+        '#dbeafe', // blue-100
+        '#dcfce7', // green-100
+        '#fef3c7', // yellow-100
+        '#fee2e2', // red-100
+        '#f3e8ff', // purple-100
+        '#ccfbf1', // teal-100
+        '#fce7f3'  // pink-100
+    ];
+
+    let spaces = [];
+    
+    function loadStateFromURL() {
+        if (window.location.hash && window.location.hash.length > 1) {
+            try {
+                const encoded = window.location.hash.substring(1);
+                const parsed = JSON.parse(decodeURIComponent(atob(encoded)));
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    spaces = parsed;
+                    return true;
+                }
+            } catch(e) {
+                console.error("Could not parse shared link data", e);
+            }
+        }
+        return false;
+    }
+
+    if (!loadStateFromURL()) {
+        spaces = [
+            { id: Date.now(), name: 'Suite 100 - Office Area', type: 'B', area: 15000, factor: 150, seats: 0, units: 0 }
+        ];
+    }
+
+    function updateURLHashSilently() {
+        try {
+            const data = JSON.stringify(spaces);
+            const encoded = btoa(encodeURIComponent(data));
+            history.replaceState(null, null, '#' + encoded);
+        } catch(e) {}
+    }
+
+    function getRootColorMap() {
+        const map = {};
+        let colorIndex = 0;
+        spaces.forEach(space => {
+            const logic = occupancyData[space.type] || occupancyData['B'];
+            const rId = logic.rootId;
+            if (!map[rId]) {
+                map[rId] = halftoneColors[colorIndex % halftoneColors.length];
+                colorIndex++;
+            }
+        });
+        return map;
+    }
+
+    function printReport() {
+        const details = document.querySelectorAll('details');
+        details.forEach(d => d.setAttribute('open', 'true'));
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    function generateShareLink() {
+        const data = JSON.stringify(spaces);
+        const encoded = btoa(encodeURIComponent(data));
+        window.location.hash = encoded;
+        
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.getElementById('share-btn');
+            const originalText = btn.innerText;
+            btn.innerText = '✓ Copied';
+            btn.style.backgroundColor = 'var(--success)';
+            btn.style.color = 'white';
+            btn.style.borderColor = 'var(--success)';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style = '';
+            }, 2500);
+        });
+    }
+
+    function exportData() {
+        const dataStr = JSON.stringify(spaces, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "AZ_Plumbing_Calculator_Data.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (Array.isArray(parsed)) {
+                    spaces = parsed;
+                    renderSpaces();
+                    updateURLHashSilently();
+                } else {
+                    alert("Invalid format: The file must contain a valid array of spaces.");
+                }
+            } catch (err) {
+                alert("Error reading file. Ensure it is a valid JSON file.");
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    let draggedId = null;
+
+    function handleDragStart(e, id) {
+        if (['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) { 
+            e.preventDefault(); 
+            return; 
+        }
+        draggedId = id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
+        setTimeout(() => e.target.closest('.space-card').classList.add('dragging'), 0);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const card = e.target.closest('.space-card');
+        if (card) card.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) { 
+        const card = e.target.closest('.space-card');
+        if (card && !card.contains(e.relatedTarget)) {
+            card.classList.remove('drag-over');
+        }
+    }
+
+    function handleDrop(e, targetId) {
+        e.preventDefault();
+        document.querySelectorAll('.space-card').forEach(c => c.classList.remove('drag-over'));
+        
+        if (draggedId !== null && draggedId !== targetId) {
+            const fromIndex = spaces.findIndex(s => s.id === draggedId);
+            const toIndex = spaces.findIndex(s => s.id === targetId);
+            
+            if (fromIndex > -1 && toIndex > -1) {
+                const draggedSpace = spaces.splice(fromIndex, 1)[0];
+                spaces.splice(toIndex, 0, draggedSpace);
+                renderSpaces();
+                updateURLHashSilently();
+            }
+        }
+    }
+
+    function handleDragEnd(e) {
+        document.querySelectorAll('.space-card').forEach(c => {
+            c.classList.remove('dragging');
+            c.classList.remove('drag-over');
+        });
+        draggedId = null;
+    }
+
+    function renderSpaces() {
+        const container = document.getElementById('spaces-container');
+        const currentHeight = container.getBoundingClientRect().height;
+        container.style.minHeight = currentHeight + 'px';
+        container.innerHTML = '';
+        const rootColorMap = getRootColorMap();
+        
+        spaces.forEach((space) => {
+            if (!occupancyData[space.type]) space.type = 'B';
+            const div = document.createElement('div');
+            div.className = 'space-card';
+            div.draggable = true;
+            div.style.cursor = 'grab';
+            
+            const spaceColor = rootColorMap[occupancyData[space.type].rootId];
+            div.style.borderLeft = `5px solid ${spaceColor}`;
+            
+            div.ondragstart = (e) => handleDragStart(e, space.id);
+            div.ondragover = handleDragOver;
+            div.ondragleave = handleDragLeave;
+            div.ondrop = (e) => handleDrop(e, space.id);
+            div.ondragend = handleDragEnd;
+            
+            const sortedKeys = Object.keys(occupancyData).sort((a, b) => occupancyData[a].label.localeCompare(occupancyData[b].label));
+            let optionsHtml = '';
+            for(const key of sortedKeys) {
+                optionsHtml += `<option value="${key}" ${space.type === key ? 'selected' : ''}>${occupancyData[key].label}</option>`;
+            }
+            
+            const logic = occupancyData[space.type];
+            let badgeHtml = logic.calcType === 'area' ? '<span class="badge">Area-Based (IBC 1004.5)</span>' : 
+                            logic.calcType === 'seats' ? '<span class="badge seats">Fixed Seating</span>' : 
+                            '<span class="badge units">Unit / Cell Based</span>';
+            
+            let inputsHtml = '';
+            let statsHtml = '';
+
+            if(logic.calcType === 'area') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Floor Area (sq ft)</label>
+                        <input type="number" value="${space.area}" min="0" oninput="updateSpaceField(${space.id}, 'area', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label>IBC Load Factor (SF/Occ)</label>
+                        <input type="number" value="${space.factor}" min="1" oninput="updateSpaceField(${space.id}, 'factor', this.value)">
+                    </div>`;
+            } else if (logic.calcType === 'seats') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Number of Fixed Seats</label>
+                        <input type="number" value="${space.seats || 0}" min="0" oninput="updateSpaceField(${space.id}, 'seats', this.value)">
+                    </div>`;
+            } else if (logic.calcType === 'units') {
+                inputsHtml = `
+                    <div class="input-group">
+                        <label>Number of Units / Rooms / Cells</label>
+                        <input type="number" value="${space.units || 0}" min="0" oninput="updateSpaceField(${space.id}, 'units', this.value)">
+                    </div>`;
+            }
+
+            if(logic.calcType === 'area' || logic.calcType === 'seats') {
+                statsHtml = `
+                    <div style="margin-top: 1rem;">
+                        <span style="color: var(--text-main); font-size: 0.8rem; margin-right: 0.5rem; font-weight: bold;">Base Occupants:</span>
+                        <span class="table-header-value" id="row-total-${space.id}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 600; color: var(--text-main); background: #e4e4e7; padding: 0.15rem 0.4rem; border-radius: 4px; display: inline-block;">0</span>
+                    </div>`;
+            } else if (logic.calcType === 'units') {
+                statsHtml = `
+                    <div class="table-wrapper">
+                    <table class="calc-table">
+                        <tr>
+                            <th class="fixture-header"><span class="table-header-title">Private/Unit Fixtures (1 WC &amp; 1 Lav per unit)</span></th>
+                        </tr>
+                        <tr>
+                            <td><span class="fixture-value" id="row-uwc-${space.id}">0</span></td>
+                        </tr>
+                    </table>
+                    </div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="space-header">
+                    <div class="space-header-left">
+                        <textarea class="space-title-input" rows="1" oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px'; updateSpaceName(${space.id}, this.value)" placeholder="Name this space...">${space.name}</textarea>
+                        ${badgeHtml}
+                    </div>
+                    ${spaces.length > 1 ? `<button class="btn btn-danger" onclick="removeSpace(${space.id})">Remove</button>` : ''}
+                </div>
+                <div class="input-grid">
+                    <div class="input-group" style="flex: 2; min-width: 250px;">
+                        <label>Occupancy Type (IBC Table 2902.1)</label>
+                        <select onchange="updateSpaceType(${space.id}, this.value)">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    ${inputsHtml}
+                </div>
+                ${statsHtml}
+            `;
+            container.appendChild(div);
+            
+            const titleInput = div.querySelector('.space-title-input');
+            if (titleInput) {
+                titleInput.style.height = 'auto';
+                titleInput.style.height = titleInput.scrollHeight + 'px';
+            }
+            
+            updateSpaceCalculations(space);
+        });
+        
+        container.style.minHeight = '';
+        calculateTotals();
+    }
+
+    function addSpace() {
+        spaces.push({ 
+            id: Date.now(), name: 'Occupied Space ' + (spaces.length + 1), type: 'B', area: 1500, factor: 150, seats: 0, units: 0 
+        });
+        renderSpaces();
+        updateURLHashSilently();
+        
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.space-card');
+            if (cards.length > 0) {
+                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 50);
+    }
+
+    function removeSpace(id) {
+        spaces = spaces.filter(s => s.id !== id);
+        renderSpaces();
+        updateURLHashSilently();
+    }
+    
+    function updateSpaceName(id, val) {
+        const space = spaces.find(s => s.id === id);
+        if (space) {
+            space.name = val;
+            updateURLHashSilently();
+            calculateTotals();
+        }
+    }
+
+    function updateSpaceType(id, newType) {
+        const space = spaces.find(s => s.id === id);
+        if (!space) return;
+        
+        space.type = newType;
+        const logic = occupancyData[newType];
+        
+        if (logic.calcType === 'area') { space.factor = logic.defaultFactor; }
+        
+        renderSpaces();
+        updateURLHashSilently();
+    }
+
+    function updateSpaceField(id, field, val) {
+        const space = spaces.find(s => s.id === id);
+        if (!space) return;
+        space[field] = val;
+        
+        updateSpaceCalculations(space);
+        calculateTotals();
+        updateURLHashSilently();
+    }
+
+    function updateSpaceCalculations(space) {
+        const logic = occupancyData[space.type];
+        
+        if (logic.calcType === 'area' || logic.calcType === 'seats') {
+            let totalOcc = 0;
+            if(logic.calcType === 'area') {
+                const area = parseFloat(space.area) || 0;
+                const factor = parseFloat(space.factor) || 150;
+                totalOcc = Math.ceil(area / factor);
+            } else {
+                const seats = parseFloat(space.seats) || 0;
+                totalOcc = Math.ceil(seats);
+            }
+
+            const el = document.getElementById('row-total-'+space.id);
+            if (el) el.innerText = totalOcc;
+
+        } else if (logic.calcType === 'units') {
+            const units = parseFloat(space.units) || 0;
+            const el = document.getElementById('row-uwc-'+space.id);
+            if (el) el.innerText = units;
+        }
+    }
+
+    function calculateTotals() {
+        let gtTotal = 0, gtMale = 0, gtFemale = 0;
+        let gtmWC = 0, gtfWC = 0, gtmLav = 0, gtfLav = 0, gtDF = 0;
+        let gtmUrMaxRaw = 0;
+        let gtuWC = 0, gtuLav = 0, gtuTub = 0;
+        
+        let sumStrings = {
+            mWC: [], fWC: [], mLav: [], fLav: [], df: [], uWC: [], uLav: []
+        };
+        
+        const buckets = {};
+        const rootColorMap = getRootColorMap();
+
+        spaces.forEach((space) => {
+            const logic = occupancyData[space.type] || occupancyData['B'];
+            const rId = logic.rootId;
+            
+            if (!buckets[rId]) {
+                buckets[rId] = {
+                    rootId: rId,
+                    rootLabel: logic.rootLabel,
+                    calcType: logic.calcType,
+                    logic: logic,
+                    totalOcc: 0,
+                    units: 0,
+                    spaceNames: [],
+                    spaceOccs: []
+                };
+            }
+
+            if (logic.calcType === 'area' || logic.calcType === 'seats') {
+                let occ = 0;
+                if(logic.calcType === 'area') {
+                    const area = parseFloat(space.area) || 0;
+                    const factor = parseFloat(space.factor) || 150;
+                    occ = Math.ceil(area / factor);
+                } else {
+                    const seats = parseFloat(space.seats) || 0;
+                    occ = Math.ceil(seats);
+                }
+                buckets[rId].totalOcc += occ;
+                buckets[rId].spaceNames.push(space.name);
+                buckets[rId].spaceOccs.push(occ);
+            } else if (logic.calcType === 'units') {
+                const units = parseFloat(space.units) || 0;
+                buckets[rId].units += units;
+                buckets[rId].spaceNames.push(space.name);
+                buckets[rId].spaceOccs.push(units);
+            }
+        });
+
+        let mathBreakdownHtml = '';
+        let legendHtml = `<div class="legend-container">`;
+
+        const sortedBuckets = Object.values(buckets).sort((a, b) => a.rootLabel.localeCompare(b.rootLabel));
+
+        sortedBuckets.forEach(bucket => {
+             const color = rootColorMap[bucket.rootId];
+             legendHtml += `<div class="legend-item"><span class="legend-swatch" style="background-color:${color};"></span> ${bucket.rootLabel}</div>`;
+        });
+        legendHtml += `</div>`;
+        
+        const badge = (val, color, title) => `<span style="background-color: ${color}; padding: 1px 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; -webkit-print-color-adjust: exact; print-color-adjust: exact;" title="${title}"><strong>${val}</strong></span>`;
+        const applyBadgeToMath = (htmlStr, color) => htmlStr.replace(/<strong>([\d.]+)<\/strong>/g, badge('$1', color, ''));
+
+        sortedBuckets.forEach(bucket => {
+            const bColor = rootColorMap[bucket.rootId];
+            
+            if (bucket.calcType === 'area' || bucket.calcType === 'seats') {
+                const maleOcc = Math.ceil(bucket.totalOcc / 2);
+                const femaleOcc = Math.ceil(bucket.totalOcc / 2);
+
+                gtTotal += bucket.totalOcc;
+                gtMale += maleOcc;
+                gtFemale += femaleOcc;
+
+                const b_mWC = bucket.logic.mWC(maleOcc);
+                const b_fWC = bucket.logic.fWC(femaleOcc);
+                const b_mLav = bucket.logic.mLav(maleOcc);
+                const b_fLav = bucket.logic.fLav(femaleOcc);
+                const b_df = bucket.logic.df(bucket.totalOcc);
+                const subRate = bucket.logic.urinalSubRate || 0.50;
+
+                gtmWC += b_mWC;
+                gtfWC += b_fWC;
+                gtmLav += b_mLav;
+                gtfLav += b_fLav;
+                gtDF += b_df;
+                gtmUrMaxRaw += (b_mWC * subRate);
+                
+                if(b_mWC > 0) sumStrings.mWC.push(badge(b_mWC.toFixed(2), bColor, bucket.rootLabel));
+                if(b_fWC > 0) sumStrings.fWC.push(badge(b_fWC.toFixed(2), bColor, bucket.rootLabel));
+                if(b_mLav > 0) sumStrings.mLav.push(badge(b_mLav.toFixed(2), bColor, bucket.rootLabel));
+                if(b_fLav > 0) sumStrings.fLav.push(badge(b_fLav.toFixed(2), bColor, bucket.rootLabel));
+                if(b_df > 0) sumStrings.df.push(badge(b_df.toFixed(2), bColor, bucket.rootLabel));
+
+                const additionLabels = bucket.spaceOccs.map((occ, i) => `${occ} <span style="font-size:0.85em; opacity:0.75;">(${bucket.spaceNames[i]})</span>`).join(' + ');
+                const spaceAdditions = bucket.spaceOccs.length > 1 ? `<br><span style="padding-left: 1rem;">= ${additionLabels}</span>` : '';
+                
+                mathBreakdownHtml += `
+                    <div class="breakdown-group">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">
+                            <span class="legend-swatch" style="background-color:${bColor}; display:inline-block; margin-right:4px; vertical-align:middle;"></span>
+                            ${bucket.rootLabel} (Max Urinal Substitution: ${Math.round(subRate*100)}%)
+                        </h4>
+                        <p class="highlight-math">Aggregated Base Load: <strong>${bucket.totalOcc} Occupants</strong> ${spaceAdditions}</p>
+                        <p class="highlight-math" style="margin-top: 0.25rem;">➔ 50/50 Split (IBC 2902.1.1) rounds up to <strong>${maleOcc} Male</strong> &amp; <strong>${femaleOcc} Female</strong></p>
+                        ${applyBadgeToMath(bucket.logic.mathMWC(maleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathFWC(femaleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathMLav(maleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathFLav(femaleOcc), bColor)}
+                        ${applyBadgeToMath(bucket.logic.mathDF(bucket.totalOcc), bColor)}
+                    </div>
+                `;
+            } else if (bucket.calcType === 'units') {
+                gtuWC += bucket.units;
+                gtuLav += bucket.units;
+                // I-3 prison cells only require 1 WC and 1 Lav per cell (1 shower per 15 inmates), while R/I-2 units require 1 tub/shower per unit
+                const tubCount = bucket.rootId === 'I-3-Cells' ? Math.ceil(bucket.units / 15) : bucket.units;
+                gtuTub += tubCount;
+                
+                if(bucket.units > 0) {
+                    sumStrings.uWC.push(badge(bucket.units, bColor, bucket.rootLabel));
+                    sumStrings.uLav.push(badge(bucket.units, bColor, bucket.rootLabel));
+                }
+
+                const additionLabels = bucket.spaceOccs.map((occ, i) => `${occ} <span style="font-size:0.85em; opacity:0.75;">(${bucket.spaceNames[i]})</span>`).join(' + ');
+                const spaceAdditions = bucket.spaceOccs.length > 1 ? `<br><span style="padding-left: 1rem;">= ${additionLabels}</span>` : '';
+
+                mathBreakdownHtml += `
+                    <div class="breakdown-group">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">
+                            <span class="legend-swatch" style="background-color:${bColor}; display:inline-block; margin-right:4px; vertical-align:middle;"></span>
+                            ${bucket.rootLabel}
+                        </h4>
+                        <p class="highlight-math">Aggregated Units/Cells: <strong>${bucket.units} Units</strong> ${spaceAdditions}</p>
+                        <p>Private/Unit Water Closets: ${badge(bucket.units, bColor, '')}</p>
+                        <p>Private/Unit Lavatories: ${badge(bucket.units, bColor, '')}</p>
+                        <p>Bathtubs / Showers: ${badge(tubCount, bColor, '')}</p>
+                    </div>
+                `;
+            }
+        });
+
+        const totalMaleWC = Math.ceil(gtmWC);
+        const totalFemaleWC = Math.ceil(gtfWC);
+        const maxUrinalSub = Math.floor(gtmUrMaxRaw);
+        const netMaleWC = Math.max(0, totalMaleWC - maxUrinalSub);
+
+        document.getElementById('gt-total').innerText = gtTotal;
+        document.getElementById('gt-male').innerText = gtMale;
+        document.getElementById('gt-female').innerText = gtFemale;
+        document.getElementById('gt-design-total').innerText = (gtMale + gtFemale);
+        
+        document.getElementById('gt-m-wc').innerText = totalMaleWC;
+        document.getElementById('gt-m-ur-sub').innerText = maxUrinalSub;
+        document.getElementById('gt-m-wc-net').innerText = netMaleWC;
+        document.getElementById('gt-f-wc').innerText = totalFemaleWC;
+        document.getElementById('gt-m-lav').innerText = Math.ceil(gtmLav);
+        document.getElementById('gt-f-lav').innerText = Math.ceil(gtfLav);
+        document.getElementById('gt-u-wc').innerText = gtuWC;
+        document.getElementById('gt-u-lav').innerText = gtuLav;
+        document.getElementById('gt-u-tub').innerText = gtuTub;
+        document.getElementById('gt-ag-wc').innerText = totalMaleWC + totalFemaleWC;
+        document.getElementById('gt-ag-lav').innerText = Math.ceil(gtmLav) + Math.ceil(gtfLav);
+        document.getElementById('gt-df').innerText = Math.ceil(gtDF);
+        
+        const gtMathContainer = document.getElementById('gt-math-container');
+        if (spaces.length > 0) {
+            gtMathContainer.innerHTML = mathBreakdownHtml + `
+                <div class="breakdown-final">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">Final Project Aggregation (IBC 2902.1 / IPC 403.1)</h4>
+                    <p><strong>Total Male Water Closets (Before Substitution):</strong> ${sumStrings.mWC.length > 0 ? sumStrings.mWC.join(' + ') + ' = ' : ''}${gtmWC.toFixed(2)} ➔ <strong>${totalMaleWC}</strong></p>
+                    <p><strong>Allowable Male Urinal Substitution (IPC 424.2):</strong> Max <strong>${maxUrinalSub} Urinal(s)</strong> + <strong>${netMaleWC} Male WC(s)</strong> = ${totalMaleWC} Total Male WC/Urinal Fixtures</p>
+                    <p><strong>Total Female Water Closets:</strong> ${sumStrings.fWC.length > 0 ? sumStrings.fWC.join(' + ') + ' = ' : ''}${gtfWC.toFixed(2)} ➔ <strong>${totalFemaleWC}</strong></p>
+                    <p><strong>Total Male Lavatories:</strong> ${sumStrings.mLav.length > 0 ? sumStrings.mLav.join(' + ') + ' = ' : ''}${gtmLav.toFixed(2)} ➔ <strong>${Math.ceil(gtmLav)}</strong></p>
+                    <p><strong>Total Female Lavatories:</strong> ${sumStrings.fLav.length > 0 ? sumStrings.fLav.join(' + ') + ' = ' : ''}${gtfLav.toFixed(2)} ➔ <strong>${Math.ceil(gtfLav)}</strong></p>
+                    <p><strong>Total Drinking Fountains:</strong> ${sumStrings.df.length > 0 ? sumStrings.df.join(' + ') + ' = ' : ''}${gtDF.toFixed(2)} ➔ <strong>${Math.ceil(gtDF)}</strong></p>
+                </div>
+                ${legendHtml}
+            `;
+        } else {
+            gtMathContainer.innerHTML = '<p>No occupancies to calculate.</p>';
+        }
+    }
+
+    renderSpaces();
+</script>
+
+</body>
+</html>
