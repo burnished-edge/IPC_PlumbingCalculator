@@ -433,6 +433,28 @@
             margin: 0 0 0.35rem 0;
             font-size: 0.85rem;
             color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+        .code-year-tag {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            background-color: #e2e8f0;
+            color: #334155;
+            white-space: nowrap;
+        }
+        .code-year-tag.current {
+            background-color: #ccfbf1;
+            color: #0f766e;
+        }
+        .code-year-tag.older {
+            background-color: #fef3c7;
+            color: #92400e;
         }
         .amendment-card ul {
             margin: 0;
@@ -621,7 +643,7 @@
     <div class="header-actions">
         <div class="header-titles">
             <h1>National IBC / IPC Plumbing Fixture Calculator</h1>
-            <div class="subtitle">Fractional Aggregation Engine — IBC Table 2902.1 / IPC Table 403.1 &amp; IBC Table 1004.5 (2018 / 2021 / 2024 I-Codes)</div>
+            <div class="subtitle">2024 IBC Table 2902.1 / 2024 IPC Table 403.1 &amp; IBC Table 1004.5</div>
         </div>
         <div class="util-buttons">
             <button class="btn btn-outline" onclick="printReport()">Print / Save PDF</button>
@@ -639,7 +661,7 @@
                 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">📍 Active Jurisdiction:</span>
                 <strong id="active-state-name" style="font-size: 0.92rem;">Arizona</strong>
                 <span id="active-state-badge" class="tier-badge supported">Standard IBC / IPC Baseline</span>
-                <span id="active-state-edition" style="font-size: 0.78rem; color: var(--text-muted);">Home-Rule (2018–2024 IBC/IPC)</span>
+                <span id="active-state-edition" style="font-size: 0.78rem; color: var(--text-muted);">Local AHJ Adoption (See City Editions Below)</span>
             </div>
             <button type="button" class="jurisdiction-toggle-btn" id="drawer-toggle-label">
                 <span>Change State / View Map</span>
@@ -679,7 +701,7 @@
 
     <div class="results-panel">
         <div class="results-header">
-            <span>Project Grand Totals (IBC Table 2902.1 / IPC Table 403.1)</span>
+            <span>Project Grand Totals (2024 IBC Table 2902.1 / 2024 IPC Table 403.1)</span>
             <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-muted); background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 3px;">Fractions Summed &amp; Rounded Up (IBC 2902.1)</span>
         </div>
 
@@ -750,7 +772,7 @@
                 <div class="result-row"><span>Bathtubs / Showers</span><span class="value" id="gt-u-tub">0</span></div>
             </div>
             <div class="fixture-category">
-                <h3 title="Single-occupant or multi-stall All-Gender total per 2021/2024 IBC 2902.1.2 & 2902.2 Exc. 6" style="cursor:help; border-bottom: 1px dotted var(--border-color);">Combined (M + F Total)</h3>
+                <h3 title="Single-occupant or multi-stall All-Gender total per 2024 IBC 2902.1.2 & 2902.2 Exc. 6" style="cursor:help; border-bottom: 1px dotted var(--border-color);">Combined (M + F Total)</h3>
                 <div class="result-row"><span>Water Closets (M+F)</span><span class="value" id="gt-ag-wc">0</span></div>
                 <div class="result-row"><span>Lavatories (M+F)</span><span class="value" id="gt-ag-lav">0</span></div>
             </div>
@@ -762,7 +784,7 @@
         </div>
 
         <details class="math-breakdown">
-            <summary>View Grand Total Math Breakdown (IBC Table 2902.1 / IPC Table 403.1)</summary>
+            <summary>View Grand Total Math Breakdown (2024 IBC Table 2902.1 / 2024 IPC Table 403.1)</summary>
             <div id="gt-math-container"></div>
         </details>
         
@@ -771,167 +793,181 @@
 
     <!-- Dynamic Collapsible Local Amendments Footnote -->
     <details class="amendments-footnote" id="amendments-details" open>
-        <summary id="amendments-summary">📌 Local Amendments &amp; AHJ Code Footnotes: Arizona (Click to Collapse/Expand)</summary>
+        <summary id="amendments-summary">📌 Local Amendments &amp; Enforced Code Editions: Arizona (Click to Collapse/Expand)</summary>
         <div class="amendments-content" id="amendments-content"></div>
     </details>
 </div>
 
 <script>
     // =========================================================================
-    // 1. STATE JURISDICTION DATABASE & US GRID MAP COORDINATES
+    // 1. STATE JURISDICTION DATABASE & EXPLICIT ENFORCED CODE EDITIONS
     // =========================================================================
     const stateJurisdictions = {
-        'AL': { name: 'Alabama', tier: 'supported', edition: '2021 IBC / IPC (Local & State)', row: 6, col: 7, summary: 'Adopts standard IBC Chapter 29 / IPC Table 403.1 ratios statewide for state buildings and across major municipalities (Birmingham, Huntsville, Mobile).' },
-        'AK': { name: 'Alaska', tier: 'hybrid', edition: '2021 IBC + 2021 UPC', row: 1, col: 1, summary: 'Adopts 2021 IBC for building occupancy, but uses the Uniform Plumbing Code (UPC) for plumbing systems. Verify whether local AHJ (e.g., Anchorage) enforces IBC Table 2902.1 or UPC Table 422.1.' },
-        'AZ': { name: 'Arizona', tier: 'supported', edition: 'Home-Rule (2018–2024 IBC / IPC)', row: 5, col: 3, summary: 'Home-rule state. Nearly all jurisdictions (Phoenix, Scottsdale, Tucson, Tempe, Mesa, Chandler, Gilbert) adopt unamended IBC Table 2902.1 / IPC Table 403.1 fixture count ratios.',
+        'AL': { name: 'Alabama', tier: 'supported', edition: 'Enforces 2021 IBC / 2021 IPC (Older Cycle)', row: 6, col: 7, summary: 'State Building Commission and major cities (Birmingham, Huntsville, Mobile) currently enforce the 2021 IBC & 2021 IPC. Note: Table 2902.1 / 403.1 fixture ratios in the 2021 edition are identical to the 2024 edition.' },
+        'AK': { name: 'Alaska', tier: 'hybrid', edition: 'Enforces 2021 IBC + 2021 UPC (Older Cycle)', row: 1, col: 1, summary: 'Enforces the 2021 IBC for building occupancy alongside the 2021 Uniform Plumbing Code (UPC). Verify whether your local AHJ (e.g., Anchorage) requires IBC Table 2902.1 or UPC Table 422.1.' },
+        'AZ': { name: 'Arizona', tier: 'supported', edition: 'Home-Rule State (2024 I-Codes in Phoenix/Tucson; 2021 in Scottsdale/East Valley)', row: 5, col: 3, summary: 'Home-rule state with no statewide code mandate. Phoenix and Tucson enforce the current 2024 IBC/IPC, while Scottsdale and several East Valley cities still enforce the 2021 IBC/IPC. All use unamended Table 2902.1 / 403.1 fixture count ratios.',
             cards: [
-                { title: 'City of Phoenix (2024 IBC / IPC)', items: [
-                    '<strong>Group B Separate Facilities Threshold (IBC 2902.2 Exc. 3):</strong> Phoenix raises the single-user restroom exemption for Business (Group B) occupancies from 25 up to <strong>50 occupants</strong> before separate male/female facilities are required.',
+                { title: 'City of Phoenix <span class="code-year-tag current">Enforces 2024 IBC / IPC</span>', items: [
+                    '<strong>Current Code Status:</strong> Phoenix formally enforces the <strong>2024 IBC and 2024 IPC</strong> (effective Aug 1, 2025).',
+                    '<strong>Group B Separate Facilities Threshold (IBC 2902.2 Exc. 3):</strong> Phoenix amends the single-user restroom exemption for Business (Group B) occupancies from 25 up to <strong>50 occupants</strong> before separate male/female facilities are required.',
                     '<strong>Drinking Fountains (IBC 2902.5):</strong> Exempt for occupant loads of 30 or fewer, or in restaurants serving free water. Bottle-filling stations may substitute for up to 50% of required fountains.',
                     '<strong>Outdoor Dining Patios:</strong> Enclosed or fenced outdoor dining areas must be included in plumbing occupant load calculations.'
                 ]},
-                { title: 'City of Scottsdale (2021 / 2024 IBC / IPC)', items: [
-                    '<strong>Fixture Ratios:</strong> Enforces standard, unamended IBC Table 2902.1 / IPC Table 403.1 minimum ratios.',
+                { title: 'City of Scottsdale <span class="code-year-tag older">Still Enforces 2021 IBC / IPC</span>', items: [
+                    '<strong>Older Code Cycle Still in Effect:</strong> Scottsdale has not yet transitioned to the 2024 cycle and still enforces the <strong>2021 IBC and 2021 IPC</strong> (adopted Jan 2023). Because Table 2902.1 / 403.1 ratios did not change between 2021 and 2024, this calculator's fixture math is 100% compliant.',
                     '<strong>Air Admittance Valves (IPC Ch. 9 Amendment):</strong> Scottsdale restricts mechanical AAVs (Studor vents); atmospheric roof venting is required unless expressly approved by the Building Official.',
                     '<strong>Water Efficiency:</strong> Strict desert conservation mandates apply to public lavatories (0.5 gpm) and high-efficiency urinals.'
                 ]},
-                { title: 'City of Tucson & Pima County (2024 IBC / IPC)', items: [
-                    '<strong>Fixture Ratios:</strong> Follows unamended IBC Table 2902.1 / IPC Table 403.1.',
+                { title: 'City of Tucson & Pima County <span class="code-year-tag current">Enforces 2024 IBC / IPC</span>', items: [
+                    '<strong>Current Code Status:</strong> Tucson and Pima County enforce the <strong>2024 IBC and 2024 IPC</strong> with standard Table 2902.1 / 403.1 ratios.',
                     '<strong>Water Harvesting & Ultra-Low Flow:</strong> Mandates commercial rainwater harvesting site provisions and high-efficiency fixtures (1.28 gpf WCs, 0.125 gpf urinals).',
                     '<strong>All-Gender Facilities:</strong> Multi-stall and single-user all-gender restrooms permitted per 2024 IBC Section 2902.1.2 & 2902.2 Exc. 6.'
                 ]},
-                { title: 'Tempe, Mesa, Chandler & Gilbert (East Valley)', items: [
-                    '<strong>Separate Facilities Exemptions (IBC 2902.2):</strong> Separate facilities not required for all occupancies <= 15 occupants, Mercantile (M) <= 100 occupants, and Business (B) <= 25 occupants (or 50 where locally amended).',
+                { title: 'Tempe, Mesa, Chandler & Gilbert <span class="code-year-tag older">Still Enforces 2021 IBC / IPC</span>', items: [
+                    '<strong>Older Code Cycle Still in Effect:</strong> Most East Valley municipalities currently enforce the <strong>2021 IBC and 2021 IPC</strong> (some rural AZ counties remain on the <strong>2018 IBC/IPC</strong>). Table 2902.1 / 403.1 fixture ratios are identical to the 2024 edition.',
+                    '<strong>Separate Facilities Exemptions (IBC 2902.2):</strong> Separate facilities not required for all occupancies <= 15 occupants, Mercantile (M) <= 100 occupants, and Business (B) <= 25 occupants (50 where locally amended).',
                     '<strong>Service Sinks:</strong> Not required in B and M tenant spaces with <= 15 occupants where central building janitorial facilities exist.'
                 ]}
             ]
         },
-        'AR': { name: 'Arkansas', tier: 'supported', edition: '2021 IBC / 2018 IPC Statewide', row: 5, col: 6, summary: 'Enforces the Arkansas Plumbing Code (based on the IPC) and Arkansas Fire Prevention Code (based on the IBC) using standard Table 2902.1 / 403.1 fixture counts.' },
-        'CA': { name: 'California', tier: 'custom', edition: '2025 California Plumbing Code (CPC / Title 24)', row: 4, col: 1, summary: 'DOES NOT USE IBC/IPC FOR PLUMBING COUNTS. California mandates the California Plumbing Code (UPC-based Table 422.1) statewide, with stepped non-linear fixture brackets and mandatory per-room odd occupant rounding.',
+        'AR': { name: 'Arkansas', tier: 'supported', edition: 'Enforces 2021 IBC & 2018 IPC (Older Cycles)', row: 5, col: 6, summary: 'Arkansas currently enforces the 2021 Arkansas Fire Prevention Code (2021 IBC) and 2018 Arkansas Plumbing Code (2018 IPC). Note: Table 2902.1 / 403.1 ratios in 2018/2021 are identical to the 2024 edition.' },
+        'CA': { name: 'California', tier: 'custom', edition: 'Enforces 2025 California Plumbing Code (Based on 2024 UPC)', row: 4, col: 1, summary: 'DOES NOT USE IBC/IPC FOR PLUMBING COUNTS. California enforces the 2025 California Plumbing Code (Title 24, Part 5, effective Jan 1, 2026), which uses UPC-based Table 422.1 stepped brackets.',
             cards: [
-                { title: 'California Statewide Mandate (Title 24, Part 5 - CPC)', items: [
-                    '<strong>Incompatible Fixture Table:</strong> California deletes IBC Chapter 29 fixture tables and mandates <strong>CPC Table 422.1</strong> (derived from IAPMO UPC).',
+                { title: 'California Statewide Mandate <span class="code-year-tag current">Enforces 2025 CPC (Title 24)</span>', items: [
+                    '<strong>Incompatible Fixture Table:</strong> California deletes IBC Chapter 29 fixture tables and mandates <strong>2025 CPC Table 422.1</strong> (derived from the 2024 IAPMO UPC).',
                     '<strong>Stepped Brackets & Urinal Columns:</strong> Uses stepped brackets (e.g., Group B Female WC is 1 for 1–15, 2 for 16–30, 3 for 31–50, 4 for 51–100) and a mandatory additive Urinal column.',
                     '<strong>Odd Occupant Rounding (CPC 422.1.1):</strong> Odd occupant loads per space must be rounded UP to the next whole number for both males and females.'
                 ]},
-                { title: 'City of Los Angeles (LAPC / LADBS)', items: [
+                { title: 'City of Los Angeles <span class="code-year-tag current">Enforces 2026 LAPC</span>', items: [
                     '<strong>Fractional Aggregation Method:</strong> Los Angeles strictly enforces the fractional summation method across CPC Table 422.1 & Table 4-1 brackets.',
                     '<strong>Recommendation:</strong> Use the dedicated <em>LAPC / CPC Comprehensive Plumbing Calculator</em> for California projects.'
                 ]}
             ]
         },
-        'CO': { name: 'Colorado', tier: 'supported', edition: '2021 IBC / IPC (State & Local)', row: 4, col: 4, summary: 'Colorado Plumbing Board adopts the IPC statewide; Denver, Colorado Springs, Aurora, and Boulder use IBC Table 2902.1 / IPC Table 403.1 ratios.',
+        'CO': { name: 'Colorado', tier: 'supported', edition: 'State Plumbing Board: 2021 IPC | Denver: 2021 IBC/IPC (Older Cycle)', row: 4, col: 4, summary: 'The Colorado State Plumbing Board and most municipalities (Denver, Aurora, Colorado Springs) currently enforce the 2021 IPC & 2021 IBC (older cycle). Table 2902.1 / 403.1 ratios are identical to 2024.',
             cards: [
-                { title: 'City & County of Denver (2022 Denver Building Code / 2021 IBC & IPC)', items: [
-                    '<strong>Fixture Count Baseline:</strong> Uses IBC Table 2902.1 / IPC Table 403.1 ratios.',
+                { title: 'City & County of Denver <span class="code-year-tag older">Still Enforces 2021 IBC / IPC</span>', items: [
+                    '<strong>Enforced Code Cycle:</strong> The 2022 Denver Building and Fire Code enforces the <strong>2021 IBC and 2021 IPC</strong> (2024 code adoption review is underway).',
+                    '<strong>Fixture Count Baseline:</strong> Uses standard IBC Table 2902.1 / IPC Table 403.1 ratios (identical to 2024).',
                     '<strong>All-Gender Restrooms:</strong> Denver amendments explicitly facilitate single-stall and multi-stall all-gender restroom designs with full-height stall partitions.'
                 ]},
-                { title: 'Colorado Statewide Plumbing Board', items: [
-                    '<strong>Statewide IPC Baseline:</strong> The Colorado State Plumbing Board enforces the IPC as the minimum standard statewide, with WaterSense high-efficiency fixture requirements.'
+                { title: 'Colorado Statewide Plumbing Board <span class="code-year-tag older">Enforces 2021 IPC</span>', items: [
+                    '<strong>Statewide IPC Baseline:</strong> The Colorado State Plumbing Board currently enforces the <strong>2021 IPC</strong> as the minimum standard statewide, paired with state WaterSense high-efficiency fixture mandates.'
                 ]}
             ]
         },
-        'CT': { name: 'Connecticut', tier: 'supported', edition: '2022 CT State Building Code (2021 IBC / IPC)', row: 3, col: 11, summary: 'Adopts the 2021 IBC and 2021 IPC statewide as part of the Connecticut State Building Code using standard Table 2902.1 / 403.1 fixture counts.' },
-        'DE': { name: 'Delaware', tier: 'supported', edition: '2021 IPC Statewide / County IBC', row: 4, col: 10, summary: 'Adopts the IPC statewide and IBC at the county/municipal level (New Castle, Kent, Sussex) with standard Table 2902.1 / 403.1 counts.' },
-        'DC': { name: 'District of Columbia', tier: 'supported', edition: 'DC Construction Codes (IBC / IPC)', row: 5, col: 10, summary: 'Adopts the IBC and IPC with DC supplements; uses standard Table 2902.1 / 403.1 fixture ratios with progressive all-gender restroom allowances.' },
-        'FL': { name: 'Florida', tier: 'supported', edition: '8th Ed. (2023) Florida Building Code (2021 IBC / IPC)', row: 7, col: 9, summary: 'Florida Building Code (Building & Plumbing volumes) is mandatory statewide and uses unamended IBC Table 2902.1 / IPC Table 403.1 fixture ratios.',
+        'CT': { name: 'Connecticut', tier: 'supported', edition: 'Enforces 2021 IBC / 2021 IPC (2022 CT State Code - Older Cycle)', row: 3, col: 11, summary: 'Connecticut currently enforces the 2022 Connecticut State Building Code, which adopts the 2021 IBC and 2021 IPC statewide (transition to the 2024 I-Codes is pending). Table 2902.1 / 403.1 ratios match 2024.' },
+        'DE': { name: 'Delaware', tier: 'supported', edition: 'Enforces 2021 IPC Statewide (Older Cycle)', row: 4, col: 10, summary: 'Delaware currently enforces the 2021 IPC statewide and 2021 IBC at the county/municipal level (New Castle, Kent, Sussex). Table 2902.1 / 403.1 counts match 2024.' },
+        'DC': { name: 'District of Columbia', tier: 'supported', edition: 'Enforces 2015 / 2021 IBC & IPC (Older Cycle)', row: 5, col: 10, summary: 'DC Construction Codes lag behind the current 2024 ICC cycle, enforcing DC-amended 2015/2021 IBC and IPC. Standard Table 2902.1 / 403.1 fixture ratios apply.' },
+        'FL': { name: 'Florida', tier: 'supported', edition: 'Enforces 2021 IBC / IPC (8th Ed. FBC; 2024 takes effect Dec 31, 2026)', row: 7, col: 9, summary: 'Florida currently enforces the 8th Edition (2023) Florida Building Code (based on 2021 IBC/IPC). The 9th Edition (2026) FBC—based on the 2024 IBC/IPC—takes effect Dec 31, 2026. Fixture ratios are identical in both.',
             cards: [
-                { title: 'Florida Building Code (FBC 8th Edition - Statewide)', items: [
-                    '<strong>Uniform Statewide Table:</strong> FBC Plumbing Table 403.1 is identical to standard IPC Table 403.1 / IBC Table 2902.1.',
+                { title: 'Florida Building Code — 8th Edition (2023) <span class="code-year-tag older">Enforces 2021 IBC / IPC Base</span>', items: [
+                    '<strong>Code Transition Timeline:</strong> Through December 30, 2026, Florida enforces the <strong>8th Edition (2023) FBC</strong> (2021 I-Code base). On <strong>December 31, 2026</strong>, the <strong>9th Edition (2026) FBC</strong> (2024 I-Code base) takes effect statewide.',
+                    '<strong>Uniform Statewide Table:</strong> FBC Plumbing Table 403.1 is identical to 2024 IPC Table 403.1 / IBC Table 2902.1.',
                     '<strong>Separate Facilities (FBC Plumbing 403.2):</strong> Exempts all occupancies <= 15 occupants, Group B <= 25 occupants, and Group M <= 100 occupants.'
                 ]}
             ]
         },
-        'GA': { name: 'Georgia', tier: 'supported', edition: '2018 / 2024 IBC & IPC Statewide', row: 6, col: 8, summary: 'Georgia Department of Community Affairs (DCA) mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture minimums.',
+        'GA': { name: 'Georgia', tier: 'supported', edition: 'Enforces 2018 IBC / 2018 IPC Statewide (Older Cycle)', row: 6, col: 8, summary: 'Georgia Department of Community Affairs (DCA) still enforces the 2018 IBC and 2018 IPC with Georgia state amendments statewide. Note: Table 2902.1 / 403.1 fixture ratios and Table 1004.5 factors in 2018 are identical to 2024.',
             cards: [
-                { title: 'Georgia State Minimum Standard Plumbing Code', items: [
-                    '<strong>Fixture Baseline:</strong> Uses IPC Table 403.1 / IBC Table 2902.1 statewide (Atlanta, Savannah, Augusta, Columbus).',
+                { title: 'Georgia State Minimum Standard Plumbing Code <span class="code-year-tag older">Still Enforces 2018 IBC / IPC</span>', items: [
+                    '<strong>Older Cycle Still Enforced:</strong> Georgia DCA continues to enforce the <strong>2018 IBC and 2018 IPC</strong> (with GA amendments) statewide across Atlanta, Savannah, Augusta, and Columbus.',
+                    '<strong>100% Math Compatibility:</strong> Because IBC Table 2902.1 and Table 1004.5 (including the 150 SF Business factor) did not change between 2018 and 2024, all calculations match.',
                     '<strong>High-Efficiency Plumbing Act:</strong> Mandates WaterSense flow rates (1.28 gpf WCs, 0.5 gpf urinals) across all commercial projects.'
                 ]}
             ]
         },
-        'HI': { name: 'Hawaii', tier: 'hybrid', edition: '2018 IBC + Uniform Plumbing Code (UPC)', row: 8, col: 1, summary: 'Hawaii adopts the IBC for building/occupancy classification and the UPC for plumbing. Verify with County AHJ (Honolulu, Maui, Hawaii, Kauai) whether IBC Ch. 29 or UPC Table 422.1 governs fixture counts.' },
-        'ID': { name: 'Idaho', tier: 'hybrid', edition: '2018 IBC + Idaho State Plumbing Code (UPC)', row: 2, col: 3, summary: 'Idaho adopts the IBC for building code and a UPC-based State Plumbing Code. In most Idaho jurisdictions, IBC Chapter 29 Table 2902.1 still governs fixture count quantities while UPC governs pipe sizing/installation.' },
-        'IL': { name: 'Illinois', tier: 'custom', edition: 'Illinois Plumbing Code (77 Ill. Adm. Code 890)', row: 3, col: 6, summary: 'DOES NOT USE IPC TABLE 403.1. Illinois mandates the state-written Illinois Plumbing Code (Section 890.Appendix A, Table B) statewide (and Chicago has its own Municipal Code Chapter 18-29).',
+        'HI': { name: 'Hawaii', tier: 'hybrid', edition: 'Enforces 2018 IBC + 2018 UPC (Older Cycle)', row: 8, col: 1, summary: 'Hawaii counties enforce the 2018 IBC (older cycle) for building occupancy and the Uniform Plumbing Code (UPC) for plumbing. Verify with County AHJ whether IBC Ch. 29 or UPC Table 422.1 governs fixture counts.' },
+        'ID': { name: 'Idaho', tier: 'hybrid', edition: 'Enforces 2018 IBC + 2017 Idaho Plumbing Code (Older Cycle)', row: 2, col: 3, summary: 'Idaho still enforces the 2018 IBC (older cycle) for building code and a UPC-based State Plumbing Code. In most Idaho jurisdictions, IBC Table 2902.1 governs fixture count quantities.' },
+        'IL': { name: 'Illinois', tier: 'custom', edition: 'Enforces Illinois Plumbing Code (77 Ill. Adm. Code 890)', row: 3, col: 6, summary: 'DOES NOT USE IPC TABLE 403.1. Illinois mandates the state-written Illinois Plumbing Code (Section 890.Appendix A, Table B) statewide (and Chicago enforces its own Municipal Code Chapter 18-29).',
             cards: [
-                { title: 'Illinois Statewide Plumbing Code (77 Ill. Adm. Code 890)', items: [
-                    '<strong>Custom Fixture Table:</strong> Even where Illinois cities adopt the IBC for building code, the state-mandated <em>Illinois Plumbing Code</em> preempts IPC fixture ratios with custom state tables.',
-                    '<strong>City of Chicago (18-29-403):</strong> Chicago uses a modified IPC-style table with Chicago-specific amendments for assembly, restaurants, and mercantile spaces.'
+                { title: 'Illinois Statewide Plumbing Code <span class="code-year-tag older">Custom State Table</span>', items: [
+                    '<strong>Custom Fixture Table:</strong> Even where Illinois cities adopt the 2021 or 2024 IBC for building code, the state-mandated <em>Illinois Plumbing Code</em> preempts IPC fixture ratios with custom state tables.',
+                    '<strong>City of Chicago (18-29-403):</strong> Chicago enforces a modified IPC-style table (based on the 2018 IPC) with Chicago-specific amendments for assembly, restaurants, and mercantile spaces.'
                 ]}
             ]
         },
-        'IN': { name: 'Indiana', tier: 'supported', edition: 'Indiana Building Code (IBC Baseline)', row: 3, col: 7, summary: 'Indiana Building Code (675 IAC 13) adopts IBC Chapter 29 Table 2902.1 statewide for minimum plumbing fixture counts.' },
-        'IA': { name: 'Iowa', tier: 'hybrid', edition: '2021 IBC + 2021 UPC', row: 3, col: 5, summary: 'Iowa adopts the UPC for state plumbing installations, while local municipalities (Des Moines, Cedar Rapids) adopt the IBC. Confirm whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
-        'KS': { name: 'Kansas', tier: 'hybrid', edition: 'Home-Rule (IBC + IPC or UPC)', row: 4, col: 5, summary: 'Home-rule state. All major cities use the IBC for building code; Wichita/Sedgwick County uses the UPC for plumbing while Overland Park, Olathe, and Kansas City Metro use IBC Table 2902.1 / IPC.' },
-        'KY': { name: 'Kentucky', tier: 'custom', edition: '2018 Kentucky Building Code + KY State Plumbing Code', row: 4, col: 7, summary: 'Kentucky enforces a state-written Plumbing Code (815 KAR Chapter 20) that modifies several fixture count ratios away from standard IPC Table 403.1.' },
-        'LA': { name: 'Louisiana', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide (LSUCCC)', row: 6, col: 5, summary: 'Louisiana State Uniform Construction Code Council (LSUCCC) mandates the 2021 IBC and 2021 IPC statewide (having transitioned away from the state plumbing code to standard IPC Table 403.1).' },
-        'ME': { name: 'Maine', tier: 'hybrid', edition: '2015/2021 IBC (MUBEC) + 2021 UPC', row: 1, col: 11, summary: 'Maine Uniform Building and Energy Code (MUBEC) adopts the IBC, while the Maine Plumbers Examining Board adopts the UPC. Verify with local AHJ whether IBC Table 2902.1 or UPC Table 422.1 is enforced for counts.' },
-        'MD': { name: 'Maryland', tier: 'supported', edition: '2021 IBC + IPC / NSPC', row: 4, col: 9, summary: 'Maryland Building Performance Standards mandate the 2021 IBC statewide; most jurisdictions use IBC Table 2902.1 / IPC Table 403.1 for minimum fixture counts.' },
-        'MA': { name: 'Massachusetts', tier: 'custom', edition: '248 CMR 10.00 (Uniform State Plumbing Code)', row: 2, col: 11, summary: 'DOES NOT USE IPC TABLE 403.1. Massachusetts enforces its own state-written plumbing code (248 CMR 10.10 Table 1) with Massachusetts-specific fixture ratios and gender rules.' },
-        'MI': { name: 'Michigan', tier: 'supported', edition: '2021 Michigan Building & Plumbing Code (IBC / IPC)', row: 2, col: 7, summary: 'Michigan Building Code and Michigan Plumbing Code adopt standard IBC Table 2902.1 / IPC Table 403.1 fixture ratios statewide.' },
-        'MN': { name: 'Minnesota', tier: 'custom', edition: '2020 Minnesota Building Code + MN Plumbing Code (UPC)', row: 2, col: 5, summary: 'Minnesota amends IBC Chapter 29 (MN Rules 1305.2902) with custom state modifications to Table 2902.1 and adopts a UPC-based Plumbing Code.' },
-        'MS': { name: 'Mississippi', tier: 'supported', edition: '2018 / 2021 IBC & IPC', row: 6, col: 6, summary: 'Adopts the IBC and IPC across major municipalities (Jackson, Gulfport, Southaven, Hattiesburg) using standard Table 2902.1 / 403.1 fixture counts.' },
-        'MO': { name: 'Missouri', tier: 'hybrid', edition: 'Home-Rule (IBC + IPC or UPC)', row: 4, col: 6, summary: 'Home-rule state. St. Louis, Springfield, and Columbia adopt the IBC/IPC (Table 2902.1 / 403.1), while Kansas City adopts the IBC paired with the UPC.' },
-        'MT': { name: 'Montana', tier: 'hybrid', edition: '2021 IBC + 2021 UPC Statewide', row: 2, col: 4, summary: 'Montana adopts the 2021 IBC statewide for building code and the 2021 UPC for plumbing. Note: Montana Administrative Rules specifically retain IBC Table 2902.1 for determining minimum fixture quantities!' },
-        'NE': { name: 'Nebraska', tier: 'hybrid', edition: '2018 IBC + IPC or UPC Locally', row: 3, col: 4, summary: 'State baseline uses the 2018 IBC; Lincoln and Omaha enforce local plumbing codes (UPC-based) alongside IBC Chapter 29. Verify fixture table with local AHJ.' },
-        'NV': { name: 'Nevada', tier: 'hybrid', edition: '2018/2021/2024 IBC + UPC Locally', row: 4, col: 2, summary: 'Southern Nevada (Las Vegas, Clark County, Henderson) and Northern Nevada (Reno, Sparks) adopt the IBC for building code and the UPC for plumbing. In Southern Nevada, IBC Table 2902.1 is commonly used for fixture count determinations while UPC governs plumbing systems.',
+        'IN': { name: 'Indiana', tier: 'supported', edition: 'Enforces 2014 Indiana Building Code (2012 IBC Base - Older Cycle)', row: 3, col: 7, summary: 'Indiana still enforces the 2014 Indiana Building Code (based on the older 2012 IBC). Caution: Under the 2012 IBC, standard Group B Business occupant load factor was 100 gross SF (Manually override Group B factor from 150 to 100 for Indiana!).' },
+        'IA': { name: 'Iowa', tier: 'hybrid', edition: 'Enforces 2024 / 2021 IBC Locally + 2021 UPC Statewide', row: 3, col: 5, summary: 'Iowa enforces the 2021 UPC for state plumbing installations, while local municipalities enforce the 2021 or 2024 IBC. Confirm whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
+        'KS': { name: 'Kansas', tier: 'hybrid', edition: 'Home-Rule (2018/2021/2024 IBC + IPC or UPC)', row: 4, col: 5, summary: 'Home-rule state. Wichita/Sedgwick County enforces the 2021 IBC + 2021 UPC, while Overland Park, Olathe, and Johnson County enforce the 2018 or 2021 IBC/IPC.' },
+        'KY': { name: 'Kentucky', tier: 'custom', edition: 'Enforces 2018 KY Building Code + KY State Plumbing Code', row: 4, col: 7, summary: 'Kentucky enforces a state-written Plumbing Code (815 KAR Chapter 20) that modifies several fixture count ratios away from standard IPC Table 403.1.' },
+        'LA': { name: 'Louisiana', tier: 'supported', edition: 'Enforces 2021 IBC & 2021 IPC Statewide (Older Cycle)', row: 6, col: 5, summary: 'Louisiana State Uniform Construction Code Council (LSUCCC) currently enforces the 2021 IBC and 2021 IPC statewide. Table 2902.1 / 403.1 fixture ratios are identical to the 2024 edition.' },
+        'ME': { name: 'Maine', tier: 'hybrid', edition: 'Enforces 2015 IBC (MUBEC) + 2021 UPC (Older Cycles)', row: 1, col: 11, summary: 'Maine Uniform Building and Energy Code (MUBEC) enforces the older 2015 IBC (transitioning to 2021), while the Plumbers Examining Board enforces the 2021 UPC. Verify fixture table with local AHJ.' },
+        'MD': { name: 'Maryland', tier: 'supported', edition: 'Enforces 2021 IBC & 2021 IPC Statewide (Older Cycle)', row: 4, col: 9, summary: 'Maryland Building Performance Standards currently enforce the 2021 IBC and 2021 IPC (or NSPC in select counties). Table 2902.1 / 403.1 fixture ratios are identical to the 2024 edition.' },
+        'MA': { name: 'Massachusetts', tier: 'custom', edition: 'Enforces 248 CMR 10.00 (MA Uniform State Plumbing Code)', row: 2, col: 11, summary: 'DOES NOT USE IPC TABLE 403.1. Massachusetts enforces its own state-written plumbing code (248 CMR 10.10 Table 1) with Massachusetts-specific fixture ratios.' },
+        'MI': { name: 'Michigan', tier: 'supported', edition: 'Enforces 2021 Michigan Building & Plumbing Code (2021 IBC / IPC)', row: 2, col: 7, summary: 'Michigan currently enforces the 2021 Michigan Building Code and 2021 Michigan Plumbing Code (based on the 2021 IBC/IPC). Table 2902.1 / 403.1 fixture ratios match the 2024 edition.' },
+        'MN': { name: 'Minnesota', tier: 'custom', edition: 'Enforces 2020 MN Building Code (2018 IBC) + MN Plumbing Code', row: 2, col: 5, summary: 'Minnesota enforces the 2020 MN Building Code (amended 2018 IBC Chapter 29, MN Rules 1305.2902) with custom state modifications to Table 2902.1.' },
+        'MS': { name: 'Mississippi', tier: 'supported', edition: 'Enforces 2018 / 2021 IBC & IPC Locally (Older Cycles)', row: 6, col: 6, summary: 'Major Mississippi municipalities (Jackson, Gulfport, Southaven, Hattiesburg) enforce the 2018 or 2021 IBC and IPC. Table 2902.1 / 403.1 fixture counts match the 2024 edition.' },
+        'MO': { name: 'Missouri', tier: 'hybrid', edition: 'Home-Rule (St. Louis: 2018 IBC/IPC; KC: 2018 IBC + UPC)', row: 4, col: 6, summary: 'Home-rule state. St. Louis, Springfield, and Columbia enforce the 2018 or 2021 IBC/IPC (Table 2902.1 / 403.1), while Kansas City enforces the 2018 IBC paired with the 2018 UPC.' },
+        'MT': { name: 'Montana', tier: 'hybrid', edition: 'Enforces 2021 IBC + 2021 UPC Statewide (Older Cycle)', row: 2, col: 4, summary: 'Montana enforces the 2021 IBC and 2021 UPC statewide. Note: Montana Administrative Rules explicitly retain 2021 IBC Table 2902.1 for determining minimum fixture quantities!' },
+        'NE': { name: 'Nebraska', tier: 'hybrid', edition: 'Enforces 2018 IBC Statewide + Local UPC/IPC (Older Cycle)', row: 3, col: 4, summary: 'Nebraska state baseline is the 2018 IBC; Omaha and Lincoln enforce local plumbing codes (UPC-based) alongside IBC Chapter 29. Verify fixture table with local AHJ.' },
+        'NV': { name: 'Nevada', tier: 'hybrid', edition: 'Enforces 2024 IBC (Reno) / 2021 IBC (Las Vegas) + UPC', row: 4, col: 2, summary: 'Southern Nevada (Las Vegas, Clark County, Henderson) currently enforces the 2021 IBC + 2021 UPC (transitioning to 2024), while Reno/Sparks enforces the 2024 IBC + 2024 UPC.',
             cards: [
-                { title: 'Southern Nevada (Las Vegas, Clark County, Henderson, N. Las Vegas)', items: [
-                    '<strong>IBC Chapter 29 vs. UPC:</strong> Southern Nevada Amendments coordinate IBC Chapter 29 (Table 2902.1) for required fixture counts with the Uniform Plumbing Code (UPC) for pipe sizing and installation.',
+                { title: 'Southern Nevada (Las Vegas, Clark County, Henderson) <span class="code-year-tag older">Enforces 2021 IBC / UPC</span>', items: [
+                    '<strong>IBC Chapter 29 vs. UPC:</strong> Southern Nevada Amendments coordinate <strong>2021 IBC Chapter 29 (Table 2902.1)</strong> for required fixture counts with the Uniform Plumbing Code (UPC) for pipe sizing and installation.',
                     '<strong>Casino Gaming Areas:</strong> Use the dedicated <em>A-2 Casino Gaming Areas</em> subcategory (11 gross SF/occ load factor, tiered WC/Lav ratios).'
+                ]},
+                { title: 'Northern Nevada (Reno, Sparks, Washoe County) <span class="code-year-tag current">Enforces 2024 IBC / UPC</span>', items: [
+                    '<strong>Current Cycle Adopted:</strong> Northern Nevada jurisdictions adopted the <strong>2024 IBC and 2024 UPC</strong> (effective 2025).'
                 ]}
             ]
         },
-        'NH': { name: 'New Hampshire', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide', row: 2, col: 10, summary: 'New Hampshire State Building Code mandates the 2021 IBC and 2021 IPC statewide using standard Table 2902.1 / 403.1 fixture minimums.' },
-        'NJ': { name: 'New Jersey', tier: 'custom', edition: 'NJ Uniform Construction Code (2021 IBC + NSPC)', row: 3, col: 10, summary: 'New Jersey deletes IBC Chapter 29 and enforces the National Standard Plumbing Code (NSPC Section 7.21, Table 7.21.1) for plumbing fixture counts.' },
-        'NM': { name: 'New Mexico', tier: 'hybrid', edition: '2021 NM Building Code (IBC) + 2021 NM Plumbing Code (UPC)', row: 5, col: 4, summary: 'New Mexico adopts the 2021 IBC and 2021 UPC. Verify with CID or Albuquerque/Santa Fe AHJ whether IBC Table 2902.1 or UMP Table 422.1 is applied to your occupancy.' },
-        'NY': { name: 'New York', tier: 'supported', edition: '2020 / 2024 NY State Uniform Code & NYC Plumbing Code (IBC / IPC)', row: 2, col: 9, summary: 'Both New York State and New York City (NYC Plumbing Code Table 403.1) use the IBC / IPC Table 2902.1 / 403.1 fixture count baseline.',
+        'NH': { name: 'New Hampshire', tier: 'supported', edition: 'Enforces 2021 IBC & 2021 IPC Statewide (Older Cycle)', row: 2, col: 10, summary: 'New Hampshire State Building Code currently enforces the 2021 IBC and 2021 IPC statewide. Table 2902.1 / 403.1 fixture minimums are identical to the 2024 edition.' },
+        'NJ': { name: 'New Jersey', tier: 'custom', edition: 'Enforces 2021 IBC + 2021 NSPC (NJ UCC)', row: 3, col: 10, summary: 'New Jersey deletes IBC Chapter 29 and enforces the National Standard Plumbing Code (NSPC Section 7.21, Table 7.21.1) for plumbing fixture counts.' },
+        'NM': { name: 'New Mexico', tier: 'hybrid', edition: 'Enforces 2021 NM Building Code (IBC) + 2021 NM Plumbing Code (UPC)', row: 5, col: 4, summary: 'New Mexico currently enforces the 2021 IBC and 2021 UPC (older cycle). Verify with CID or Albuquerque/Santa Fe AHJ whether IBC Table 2902.1 or UMP Table 422.1 is applied.' },
+        'NY': { name: 'New York', tier: 'supported', edition: 'NYS: 2020 Code (2018 IBC/IPC) | NYC: 2022 Code (2015 IPC Base)', row: 2, col: 9, summary: 'New York State enforces the 2020 NYS Uniform Code (based on 2018 IBC/IPC; 2024 transition underway), while NYC enforces the 2022 NYC Plumbing Code. Both use standard Table 2902.1 / 403.1 fixture ratios.',
             cards: [
-                { title: 'New York State & New York City (NYCPC Table 403.1)', items: [
-                    '<strong>Fixture Ratio Baseline:</strong> Both NYS Uniform Code and NYC Plumbing Code use standard IPC Table 403.1 / IBC Table 2902.1 ratios.',
-                    '<strong>NYC Local Law 79 (Single-Occupant Restrooms):</strong> All single-occupant toilet rooms in NYC must be designated as all-gender.',
-                    '<strong>Urinal Substitution:</strong> Follows standard IPC 424.2 limits (67% in Group A/E, 50% in all others).'
+                { title: 'New York State (Outside NYC) <span class="code-year-tag older">Enforces 2018 IBC / IPC Base</span>', items: [
+                    '<strong>Enforced Code Cycle:</strong> The 2020 NYS Building & Plumbing Codes are based on the <strong>2018 IBC and 2018 IPC</strong> (NYS is currently finalizing its transition to the 2024 I-Codes).',
+                    '<strong>Fixture Ratio Baseline:</strong> Uses unamended Table 2902.1 / 403.1 ratios (identical to 2024).'
+                ]},
+                { title: 'New York City <span class="code-year-tag older">Enforces 2022 NYC Plumbing Code</span>', items: [
+                    '<strong>NYC Table 403.1:</strong> Matches the standard IPC Table 403.1 fixture ratios.',
+                    '<strong>NYC Local Law 79 (Single-Occupant Restrooms):</strong> All single-occupant toilet rooms in NYC must be designated as all-gender.'
                 ]}
             ]
         },
-        'NC': { name: 'North Carolina', tier: 'supported', edition: '2018 / 2024 NC Building & Plumbing Code (IBC / IPC)', row: 5, col: 9, summary: 'North Carolina State Building and Plumbing Codes mandate IBC Table 2902.1 / IPC Table 403.1 statewide (Charlotte, Raleigh, Durham, Greensboro).' },
-        'ND': { name: 'North Dakota', tier: 'hybrid', edition: '2021 IBC + ND State Plumbing Code (UPC)', row: 2, col: 6, summary: 'North Dakota adopts the IBC for building code and a UPC-based State Plumbing Code. Verify whether local AHJ (Fargo, Bismarck) enforces IBC Table 2902.1 or ND Plumbing Code Table 422.1.' },
-        'OH': { name: 'Ohio', tier: 'supported', edition: '2024 Ohio Building & Plumbing Code (2021 IBC / IPC)', row: 3, col: 8, summary: 'Ohio Board of Building Standards mandates the 2024 Ohio Building & Plumbing Codes (based on 2021 IBC/IPC) statewide using unamended Table 2902.1 / 403.1 fixture ratios.' },
-        'OK': { name: 'Oklahoma', tier: 'supported', edition: '2018 / 2021 IBC & IPC Statewide (OUBCC)', row: 5, col: 5, summary: 'Oklahoma Uniform Building Code Commission (OUBCC) mandates the IBC and IPC statewide (Oklahoma City, Tulsa, Norman) using standard Table 2902.1 / 403.1 ratios.' },
-        'OR': { name: 'Oregon', tier: 'supported', edition: '2022 Oregon Structural Specialty Code (2021 IBC Ch. 29)', row: 3, col: 1, summary: 'Although Oregon uses the Oregon Plumbing Specialty Code (UPC-based) for pipe sizing, Oregon explicitly mandates OSSC (IBC) Chapter 29 Table 2902.1 for determining minimum plumbing fixture counts!',
+        'NC': { name: 'North Carolina', tier: 'supported', edition: 'Enforces 2024 NC Building & Plumbing Code (2021 IBC / IPC Base)', row: 5, col: 9, summary: 'North Carolina enforces the "2024 NC State Building & Plumbing Codes," which are built on the 2021 IBC and 2021 IPC model codes. Table 2902.1 / 403.1 fixture ratios match the 2024 ICC edition.' },
+        'ND': { name: 'North Dakota', tier: 'hybrid', edition: 'Enforces 2021 IBC + ND State Plumbing Code (UPC)', row: 2, col: 6, summary: 'North Dakota enforces the 2021 IBC (older cycle) for building code and a UPC-based State Plumbing Code. Verify whether local AHJ enforces IBC Table 2902.1 or ND Plumbing Code Table 422.1.' },
+        'OH': { name: 'Ohio', tier: 'supported', edition: 'Enforces 2024 Ohio Building & Plumbing Code (2021 IBC / IPC Base)', row: 3, col: 8, summary: 'Ohio enforces the "2024 Ohio Building & Plumbing Codes" (effective March 2024), which adopt the 2021 IBC and 2021 IPC statewide. Unamended Table 2902.1 / 403.1 fixture ratios apply.' },
+        'OK': { name: 'Oklahoma', tier: 'supported', edition: 'Enforces 2018 IBC & 2021 IPC Statewide (Older Cycles)', row: 5, col: 5, summary: 'Oklahoma Uniform Building Code Commission (OUBCC) currently enforces the 2018 IBC and 2021 IPC statewide (transition to 2024 under review). Table 2902.1 / 403.1 ratios match 2024.' },
+        'OR': { name: 'Oregon', tier: 'supported', edition: 'Enforces 2022 OSSC (2021 IBC Ch. 29 - Older Cycle)', row: 3, col: 1, summary: 'Oregon currently enforces the 2022 Oregon Structural Specialty Code (based on the 2021 IBC). Oregon explicitly mandates OSSC (IBC) Chapter 29 Table 2902.1 for determining minimum plumbing fixture counts!',
             cards: [
-                { title: 'Oregon Structural Specialty Code (OSSC Chapter 29)', items: [
-                    '<strong>IBC Chapter 29 Controls Counts:</strong> Unlike California or Washington, Oregon deletes UPC Table 422.1 and requires all minimum fixture counts to be calculated using <strong>OSSC (IBC) Table 2902.1</strong>.',
+                { title: 'Oregon Structural Specialty Code (2022 OSSC) <span class="code-year-tag older">Enforces 2021 IBC Ch. 29 Base</span>', items: [
+                    '<strong>IBC Chapter 29 Controls Counts:</strong> Unlike California or Washington, Oregon deletes UPC Table 422.1 and requires all minimum fixture counts to be calculated using <strong>OSSC (2021 IBC) Table 2902.1</strong>, which has identical ratios to the 2024 IBC.',
                     '<strong>All-Gender Facilities:</strong> Oregon OSSC 2902.2 explicitly permits non-separated multi-stall all-gender restrooms when privacy compartment rules are met.'
                 ]}
             ]
         },
-        'PA': { name: 'Pennsylvania', tier: 'supported', edition: 'PA Uniform Construction Code (2018 / 2021 IBC & IPC)', row: 3, col: 9, summary: 'Pennsylvania UCC mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios (including Philadelphia, which transitioned to the IPC).' },
-        'RI': { name: 'Rhode Island', tier: 'supported', edition: 'RI State Building & Plumbing Code (2021 IBC / IPC)', row: 3, col: 12, summary: 'Rhode Island Building Code Commission enforces the 2021 IBC and 2021 IPC statewide with standard Table 2902.1 / 403.1 fixture counts.' },
-        'SC': { name: 'South Carolina', tier: 'supported', edition: '2021 SC Building & Plumbing Code (IBC / IPC)', row: 5, col: 8, summary: 'South Carolina Building Codes Council mandates the 2021 IBC and 2021 IPC statewide (Charleston, Columbia, Greenville) using standard Table 2902.1 / 403.1.' },
-        'SD': { name: 'South Dakota', tier: 'hybrid', edition: '2021 IBC Locally + 2015 UPC Statewide', row: 2, col: 4, summary: 'South Dakota Plumbing Commission enforces the UPC statewide while cities (Sioux Falls, Rapid City) adopt the 2021 IBC. Verify whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
-        'TN': { name: 'Tennessee', tier: 'supported', edition: '2018 / 2021 IBC & IPC (State & Local)', row: 5, col: 7, summary: 'Adopts the IBC and IPC statewide and across major metros (Nashville, Memphis, Knoxville, Chattanooga) using standard Table 2902.1 / 403.1 fixture ratios.' },
-        'TX': { name: 'Texas', tier: 'supported', edition: 'IBC / IPC Statewide & Municipal (Dallas, Austin, SA, FW)', row: 7, col: 5, summary: 'Most Texas cities (Dallas, Fort Worth, San Antonio, El Paso, Plano, Arlington) adopt standard IBC Table 2902.1 / IPC Table 403.1. Note: Houston and Austin use the UPC for plumbing but coordinate with IBC.',
+        'PA': { name: 'Pennsylvania', tier: 'supported', edition: 'Enforces 2018 IBC / IPC Statewide (2021 in Adoption; Older Cycle)', row: 3, col: 9, summary: 'Pennsylvania UCC enforces the 2018 IBC/IPC (with transition to the 2021 I-Codes). Both 2018 and 2021 use the exact same Table 2902.1 / 403.1 fixture ratios and Table 1004.5 factors as the 2024 edition.' },
+        'RI': { name: 'Rhode Island', tier: 'supported', edition: 'Enforces 2021 IBC / 2021 IPC Statewide (Older Cycle)', row: 3, col: 12, summary: 'Rhode Island Building Code Commission enforces the 2021 IBC and 2021 IPC statewide (SBC-1 & SBC-3). Table 2902.1 / 403.1 fixture counts match the 2024 edition.' },
+        'SC': { name: 'South Carolina', tier: 'supported', edition: 'Enforces 2021 SC Building & Plumbing Code (2021 IBC / IPC)', row: 5, col: 8, summary: 'South Carolina Building Codes Council currently enforces the 2021 IBC and 2021 IPC statewide. Table 2902.1 / 403.1 fixture counts are identical to the 2024 edition.' },
+        'SD': { name: 'South Dakota', tier: 'hybrid', edition: 'Enforces 2021 / 2024 IBC Locally + 2015 UPC Statewide', row: 2, col: 4, summary: 'South Dakota Plumbing Commission still enforces the older 2015 UPC statewide while cities (Sioux Falls, Rapid City) enforce the 2021 or 2024 IBC. Verify whether local AHJ enforces IBC Table 2902.1 or UPC Table 422.1.' },
+        'TN': { name: 'Tennessee', tier: 'supported', edition: 'Enforces 2021 / 2018 IBC & IPC (Older Cycles)', row: 5, col: 7, summary: 'Tennessee state fire marshal and major metros (Nashville, Memphis, Knoxville, Chattanooga) enforce the 2018 or 2021 IBC and IPC. Table 2902.1 / 403.1 fixture ratios match the 2024 edition.' },
+        'TX': { name: 'Texas', tier: 'supported', edition: 'Municipal Adoption (2024 IBC/IPC in San Antonio/Fort Worth; 2021 in Dallas)', row: 7, col: 5, summary: 'Texas municipalities adopt codes locally: San Antonio and Fort Worth enforce the 2024 IBC/IPC, Dallas enforces the 2021 IBC/IPC, and Austin/Houston enforce the 2021/2024 IBC paired with the UPC.',
             cards: [
-                { title: 'Dallas, Fort Worth, San Antonio & Statewide Texas', items: [
-                    '<strong>IBC / IPC Standard:</strong> Most Texas municipalities adopt the 2021 or 2024 IBC and IPC using standard Table 2902.1 / 403.1 ratios.',
-                    '<strong>Group B Separate Facilities:</strong> Several Texas cities raise the Group B single-user restroom threshold from 25 to 50 occupants.'
+                { title: 'San Antonio & Fort Worth <span class="code-year-tag current">Enforces 2024 IBC / IPC</span>', items: [
+                    '<strong>Current Code Cycle:</strong> Enforce the <strong>2024 IBC and 2024 IPC</strong> using standard Table 2902.1 / 403.1 ratios.'
                 ]},
-                { title: 'Houston & Austin (UPC Plumbing Jurisdictions)', items: [
+                { title: 'City of Dallas, Plano & Arlington <span class="code-year-tag older">Still Enforces 2021 IBC / IPC</span>', items: [
+                    '<strong>Older Code Cycle Still in Effect:</strong> Enforce the <strong>2021 IBC and 2021 IPC</strong>. Table 2902.1 / 403.1 fixture ratios are identical to the 2024 edition.',
+                    '<strong>Group B Separate Facilities:</strong> Several North Texas cities raise the Group B single-user restroom threshold from 25 to 50 occupants.'
+                ]},
+                { title: 'Houston & Austin <span class="code-year-tag older">Enforces 2021 / 2024 UPC for Plumbing</span>', items: [
                     '<strong>Verify Local Table:</strong> Houston and Austin adopt the Uniform Plumbing Code (UPC) alongside the IBC. Verify whether your project reviewer requires UPC Table 422.1 or IBC Table 2902.1.'
                 ]}
             ]
         },
-        'UT': { name: 'Utah', tier: 'supported', edition: '2021 IBC & 2021 IPC Statewide', row: 4, col: 3, summary: 'Utah Uniform Building Standards Act mandates the 2021 IBC and 2021 IPC statewide (Salt Lake City, Provo, St. George) using standard Table 2902.1 / 403.1 fixture ratios.' },
-        'VT': { name: 'Vermont', tier: 'supported', edition: '2015 / 2021 IBC & IPC Statewide', row: 1, col: 10, summary: 'Vermont Fire & Building Safety Code mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios.' },
-        'VA': { name: 'Virginia', tier: 'supported', edition: '2021 Virginia Uniform Statewide Building Code (IBC / IPC)', row: 4, col: 8, summary: 'Virginia USBC (VCC & VPC) mandates the 2021 IBC and 2021 IPC statewide using standard Table 2902.1 / 403.1 ratios.' },
-        'WA': { name: 'Washington', tier: 'custom', edition: '2021 WA State Building Code + UPC (Amended IBC 2902.1)', row: 2, col: 2, summary: 'Washington State retains IBC Chapter 29 for fixture counts, into which WA State injects custom state amendments (WAC 51-50-2900) and Bottle Filling Station mandates.' },
-        'WV': { name: 'West Virginia', tier: 'supported', edition: '2018 / 2021 IBC & IPC Statewide', row: 4, col: 7, summary: 'West Virginia State Building Code mandates the IBC and IPC statewide using standard Table 2902.1 / 403.1 fixture ratios.' },
-        'WI': { name: 'Wisconsin', tier: 'custom', edition: 'Wisconsin Commercial Building Code (SPS 361–366) & SPS 382', row: 2, col: 6, summary: 'Wisconsin uses the IBC as a base for its Commercial Building Code (SPS 362.2902) with Wisconsin-specific state plumbing modifications under SPS 382.' },
-        'WY': { name: 'Wyoming', tier: 'supported', edition: '2021 / 2024 IBC & IPC', row: 3, col: 3, summary: 'Wyoming and its major municipalities (Cheyenne, Casper, Laramie, Jackson) adopt the IBC and IPC using standard Table 2902.1 / 403.1 fixture ratios.' }
+        'UT': { name: 'Utah', tier: 'supported', edition: 'Enforces 2021 IBC & 2021 IPC Statewide (Older Cycle)', row: 4, col: 3, summary: 'Utah Uniform Building Standards Act currently enforces the 2021 IBC and 2021 IPC statewide (Salt Lake City, Provo, St. George). Table 2902.1 / 403.1 fixture ratios match the 2024 edition.' },
+        'VT': { name: 'Vermont', tier: 'supported', edition: 'Enforces 2015 IBC & 2021 IPC Statewide (Older Cycles)', row: 1, col: 10, summary: 'Vermont Fire & Building Safety Code currently enforces the 2021 IPC (and older 2015 IBC). Standard IPC Table 403.1 fixture ratios apply.' },
+        'VA': { name: 'Virginia', tier: 'supported', edition: 'Enforces 2021 Virginia USBC (2021 IBC / IPC Base - Older Cycle)', row: 4, col: 8, summary: 'Virginia currently enforces the 2021 Virginia Uniform Statewide Building Code (effective Jan 2024, based on the 2021 IBC & 2021 IPC). Table 2902.1 / 403.1 ratios match the 2024 edition.' },
+        'WA': { name: 'Washington', tier: 'custom', edition: 'Enforces 2021 WA State Building Code (Amended 2021 IBC + UPC)', row: 2, col: 2, summary: 'Washington State enforces the 2021 WSBC (effective March 2024), which retains 2021 IBC Chapter 29 for fixture counts but injects custom WA State amendments (WAC 51-50-2900).' },
+        'WV': { name: 'West Virginia', tier: 'supported', edition: 'Enforces 2018 IBC & 2018 IPC Statewide (Older Cycle)', row: 4, col: 7, summary: 'West Virginia State Building Code still enforces the 2018 IBC and 2018 IPC statewide. Because Table 2902.1 / 403.1 and Table 1004.5 did not change between 2018 and 2024, all fixture math matches.' },
+        'WI': { name: 'Wisconsin', tier: 'custom', edition: 'Enforces WI Commercial Building Code (2015 IBC Base + SPS 382)', row: 2, col: 6, summary: 'Wisconsin enforces SPS 361–366 (based on the older 2015 IBC) with Wisconsin-specific state plumbing modifications under SPS 382.' },
+        'WY': { name: 'Wyoming', tier: 'supported', edition: 'Enforces 2024 IBC / IPC (Cheyenne/Casper) & 2021 Locally', row: 3, col: 3, summary: 'Wyoming state fire marshal and major municipalities (Cheyenne, Casper, Laramie) enforce the 2024 (or 2021) IBC and IPC using standard Table 2902.1 / 403.1 fixture ratios.' }
     };
 
-    // Fix overlapping grid coordinates for clean 12x8 tile map
+    // Grid coordinates for 12x8 US tile map
     const mapGridCoords = {
         'AK': [1, 1], 'ME': [1, 12],
         'WA': [2, 2], 'MT': [2, 4], 'ND': [2, 5], 'MN': [2, 6], 'WI': [2, 7], 'MI': [2, 8], 'VT': [2, 10], 'NH': [2, 11],
@@ -943,7 +979,7 @@
     };
 
     // =========================================================================
-    // 2. IBC 2902.1 / IPC 403.1 FRACTIONAL LOGIC ENGINE
+    // 2. 2024 IBC 2902.1 / IPC 403.1 FRACTIONAL LOGIC ENGINE
     // =========================================================================
     function ibcTwoTier(val, tier1Limit, div1, div2) {
         if (val <= 0) return 0;
@@ -980,8 +1016,7 @@
         return `<p>${fixtureName}: ${fmtVal} occ × 1/${divisor} = <strong>${(val/divisor).toFixed(2)}</strong></p>`;
     }
 
-    // Complete 2021 / 2024 IBC Table 2902.1 / IPC Table 403.1 Occupancy Definitions
-    // Includes Concentrated Business & Accessory Conference Room subcategories
+    // Complete 2024 IBC Table 2902.1 / IPC Table 403.1 Occupancy Definitions
     const occupancyData = {
         'A-1': {
             rootId: 'A-1', rootLabel: 'Group A-1 Assembly (Theaters)', label: 'A-1 Assembly (Theaters, concert halls - fixed seating)', calcType: 'seats', urinalSubRate: 0.67,
@@ -1355,7 +1390,7 @@
         const summaryEl = document.getElementById('amendments-summary');
         const contentEl = document.getElementById('amendments-content');
 
-        summaryEl.innerHTML = `📌 Local Amendments &amp; AHJ Code Footnotes: ${st.name} (${st.edition})`;
+        summaryEl.innerHTML = `📌 Local Amendments &amp; Enforced Code Editions: ${st.name} — ${st.edition}`;
 
         let cardsHtml = '';
         if (st.cards && st.cards.length > 0) {
@@ -1366,28 +1401,33 @@
                 </div>
             `).join('') + `</div>`;
         } else {
-            // Default National IBC / IPC Footnotes for states without custom cards
+            // Default National IBC / IPC Footnotes with explicit Older Cycle vs 2024 clarity
+            const isOlderCycle = st.edition.includes('2021') || st.edition.includes('2018') || st.edition.includes('2015') || st.edition.includes('2012');
+            const cycleTag = isOlderCycle 
+                ? `<span class="code-year-tag older">${st.edition}</span>` 
+                : `<span class="code-year-tag current">${st.edition}</span>`;
+
             cardsHtml = `
                 <div class="amendments-grid">
                     <div class="amendment-card">
-                        <h4>${st.name} Adoption Summary (${st.edition})</h4>
+                        <h4>${st.name} Enforced Code Status ${cycleTag}</h4>
                         <ul>
                             <li>${st.summary}</li>
-                            <li><strong>Fractional Aggregation (IBC 2902.1 / IPC 403.1):</strong> Fractional fixture requirements for multiple occupancies are summed first and then rounded up to the next whole number.</li>
+                            <li><strong>2024 vs. Older Code Edition Compatibility:</strong> While the calculator headlines the current <strong>2024 IBC Table 2902.1 / 2024 IPC Table 403.1</strong>, the ICC did not change commercial fixture count ratios or Table 1004.5 load factors between the 2018, 2021, and 2024 editions.</li>
                         </ul>
                     </div>
                     <div class="amendment-card">
                         <h4>Separate Facilities Exemptions (IBC 2902.2 / IPC 403.2)</h4>
                         <ul>
                             <li><strong>All Occupancies <= 15 Occupants:</strong> Separate male/female facilities are not required for spaces with a total occupant load of 15 or fewer (a single unisex toilet room suffices).</li>
-                            <li><strong>Group B (Business) &amp; Group M (Mercantile):</strong> Separate facilities are not required in Group M <= 100 occupants or Group B <= 25 occupants (50 in jurisdictions adopting the 2024 or local Group B threshold amendment).</li>
+                            <li><strong>Group B (Business) &amp; Group M (Mercantile):</strong> Separate facilities are not required in Group M <= 100 occupants or Group B <= 25 occupants (or 50 where locally amended).</li>
                         </ul>
                     </div>
                     <div class="amendment-card">
-                        <h4>All-Gender &amp; Single-User Facilities (2021 / 2024 IBC)</h4>
+                        <h4>All-Gender &amp; Single-User Facilities (IBC 2902.1.2 &amp; 2902.2)</h4>
                         <ul>
                             <li><strong>Single-Occupant Restrooms (IBC 2902.1.2):</strong> Permitted to count toward the total number of required plumbing fixtures.</li>
-                            <li><strong>Multi-Stall All-Gender (IBC 2902.2 Exc. 6):</strong> Permitted where each water closet and urinal is enclosed in a private stall complying with IPC Section 405.3.4.</li>
+                            <li><strong>Multi-Stall All-Gender (2021 &amp; 2024 IBC 2902.2 Exc. 6):</strong> Permitted where each water closet and urinal is enclosed in a private stall complying with IPC Section 405.3.4 (Note: jurisdictions still enforcing the <strong>2018 IBC</strong> or older require an AHJ variance/alternate method for multi-stall all-gender layouts).</li>
                         </ul>
                     </div>
                     <div class="amendment-card">
@@ -1643,7 +1683,7 @@
                 </div>
                 <div class="input-grid">
                     <div class="input-group" style="flex: 2; min-width: 260px;">
-                        <label>Occupancy Type &amp; Subcategory (IBC Table 2902.1 &amp; 1004.5)</label>
+                        <label>Occupancy Type &amp; Subcategory (2024 IBC Table 2902.1 &amp; 1004.5)</label>
                         <select onchange="updateSpaceType(${space.id}, this.value)">
                             ${optionsHtml}
                         </select>
@@ -1920,7 +1960,7 @@
         if (spaces.length > 0) {
             gtMathContainer.innerHTML = mathBreakdownHtml + `
                 <div class="breakdown-final">
-                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">Final Project Aggregation (IBC 2902.1 / IPC 403.1)</h4>
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.9rem;">Final Project Aggregation (2024 IBC 2902.1 / 2024 IPC 403.1)</h4>
                     <p><strong>Total Male Water Closets (Before Substitution):</strong> ${sumStrings.mWC.length > 0 ? sumStrings.mWC.join(' + ') + ' = ' : ''}${gtmWC.toFixed(2)} ➔ <strong>${totalMaleWC}</strong></p>
                     <p><strong>Allowable Male Urinal Substitution (IPC 424.2):</strong> Max <strong>${maxUrinalSub} Urinal(s)</strong> + <strong>${netMaleWC} Male WC(s)</strong> = ${totalMaleWC} Total Male WC/Urinal Fixtures</p>
                     <p><strong>Total Female Water Closets:</strong> ${sumStrings.fWC.length > 0 ? sumStrings.fWC.join(' + ') + ' = ' : ''}${gtfWC.toFixed(2)} ➔ <strong>${totalFemaleWC}</strong></p>
